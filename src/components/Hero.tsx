@@ -2,13 +2,13 @@ import { useEffect, useState } from 'react';
 import { useTypewriter } from '../hooks/useTypewriter';
 
 const PILL_LABELS = [
-  'Pitch us an idea',
-  'Come work here',
-  'Send a brief hello',
-  'See how we operate',
+  'Teeth Whitening',
+  'Dental Implants',
+  'Smile Design',
+  'Skin Care',
 ];
 
-const EMAIL = 'hello@mainframe.co';
+const PHONE = '+92 300 1234567';
 
 function CopyIcon() {
   return (
@@ -28,46 +28,44 @@ function CopyIcon() {
 
 export function Hero() {
   const { displayed, done } = useTypewriter(
-    'Glad you stopped in. Good taste tends to find us. Now, what are we building?'
+    'Gentle, modern dental care designed to brighten your smile and restore your confidence.'
   );
   const [pillsVisible, setPillsVisible] = useState(false);
-  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     const timeoutId = window.setTimeout(() => setPillsVisible(true), 400);
     return () => window.clearTimeout(timeoutId);
   }, []);
 
-  const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(EMAIL);
-      setCopied(true);
-      window.setTimeout(() => setCopied(false), 1500);
-    } catch {
-      // Clipboard API unavailable — fail silently.
-    }
-  };
-
   return (
     <section className="relative z-[1] flex h-screen flex-col justify-end overflow-hidden px-5 pb-12 sm:px-8 md:justify-center md:px-10 md:pb-0">
-      <div className="relative z-10 max-w-xl">
-        {/* Blurred intro label */}
+      <div className="relative z-10 max-w-2xl">
         <p
           className="pointer-events-none mb-5 select-none sm:mb-6"
           style={{
-            fontSize: 'clamp(18px, 4vw, 26px)',
+            fontSize: 'clamp(18px, 4vw, 28px)',
             lineHeight: 1.3,
-            fontWeight: 400,
+            fontWeight: 600,
             color: '#000',
-            filter: 'blur(4px)',
+            filter: 'blur(2px)',
           }}
         >
-          Hey there, meet A.R.I.A,
-          <br />
-          Mainframe&rsquo;s Adaptive Response Interface Agent
+          Hamdard Dental &amp; Skin Clinic
         </p>
 
-        {/* Typewriter text */}
+        <p
+          className="mb-5 text-black sm:mb-6"
+          style={{
+            fontSize: 'clamp(24px, 5vw, 62px)',
+            lineHeight: 1.05,
+            fontWeight: 800,
+            letterSpacing: '-0.06em',
+            minHeight: '54px',
+          }}
+        >
+          Smile brighter with confident, healthy care.
+        </p>
+
         <p
           className="mb-5 text-black sm:mb-6"
           style={{
@@ -86,7 +84,6 @@ export function Hero() {
           )}
         </p>
 
-        {/* Action pills */}
         <div
           className="flex flex-wrap gap-y-1 transition-[opacity,transform] duration-[400ms] ease-out"
           style={{
@@ -104,17 +101,15 @@ export function Hero() {
             </a>
           ))}
 
-          <button
-            type="button"
-            onClick={handleCopy}
+          <a
+            href="tel:+923001234567"
             className="mx-[0.2em] mb-[0.4em] inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full border border-white bg-transparent px-4 py-[0.3em] text-[13px] text-white transition-colors duration-200 hover:bg-white hover:text-black sm:gap-3 sm:px-5 sm:text-[15px]"
           >
             <span>
-              Reach us: <span className="underline underline-offset-1">{EMAIL}</span>
+              Call us: <span className="underline underline-offset-1">{PHONE}</span>
             </span>
             <CopyIcon />
-            <span className="sr-only">{copied ? 'Copied!' : 'Copy email address'}</span>
-          </button>
+          </a>
         </div>
       </div>
     </section>
