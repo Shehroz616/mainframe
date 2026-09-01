@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-const NAV_LINKS = ['Labs', 'Studio', 'Openings', 'Shop'];
+const NAV_LINKS = ['About', 'Services', 'Reviews', 'Contact'];
 
 export function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
