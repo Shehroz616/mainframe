@@ -74,7 +74,7 @@ export function BackgroundVideo() {
       muted
       playsInline
       preload="auto"
-      className="fixed inset-0 z-0 h-full w-full object-cover"
+      className="absolute top-0 left-0 z-0 w-full object-cover h-full"
       style={{ objectPosition: '70% center' }}
     />
   );

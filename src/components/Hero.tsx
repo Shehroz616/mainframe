@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useTypewriter } from '../hooks/useTypewriter';
-
+import {BackgroundVideo} from '../components/BackgroundVideo';
 const PILL_LABELS = [
   'Teeth Whitening',
   'Dental Implants',
@@ -39,6 +39,7 @@ export function Hero() {
 
   return (
     <section className="relative z-[1] flex h-screen flex-col justify-end overflow-hidden px-5 pb-12 sm:px-8 md:justify-center md:px-10 md:pb-0">
+      <BackgroundVideo />
       <div className="relative z-10 max-w-2xl">
         <p
           className="pointer-events-none mb-5 select-none sm:mb-6"
