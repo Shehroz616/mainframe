@@ -20,7 +20,7 @@ export function Navbar() {
               <a href="#" className="transition-opacity hover:opacity-60">
                 {link}
               </a>
-              {i < NAV_LINKS.length - 1 && <span>,&nbsp;</span>}
+              {i < NAV_LINKS.length - 1 && <span> &nbsp; </span>}
             </span>
           ))}
         </nav>
