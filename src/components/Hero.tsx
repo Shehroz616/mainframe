@@ -48,7 +48,6 @@ export function Hero() {
             lineHeight: 1.3,
             fontWeight: 600,
             color: '#000',
-            filter: 'blur(2px)',
           }}
         >
           Hamdard Dental &amp; Skin Clinic

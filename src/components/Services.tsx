@@ -42,7 +42,7 @@ const Services = () => {
   const opacity = 0.35 + progress * 0.65;
 
   return (
-    <section ref={sectionRef} className="services-section">
+    <section ref={sectionRef} id="services" className="services-section">
       <img
         className="services-character"
         src="center-character.png"

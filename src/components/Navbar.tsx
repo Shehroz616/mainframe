@@ -7,22 +7,10 @@ export function Navbar() {
 
   return (
     <>
-      <header className="fixed inset-x-0 top-0 z-10 flex items-center justify-between px-5 py-4 sm:px-8 sm:py-5">
+      <header className="fixed inset-x-0 top-0 z-50 flex items-center justify-between px-5 py-4 sm:px-8 sm:py-5">
         {/* Logo */}
         <div className="flex flex-row items-center gap-3">
-          <span
-            className="text-[21px] tracking-tight text-black sm:text-[26px]"
-            style={{ fontFamily: 'var(--font-heading)' }}
-          >
-            Mainframe&reg;
-          </span>
-          <span
-            aria-hidden="true"
-            className="select-none text-[25px] text-black sm:text-[30px]"
-            style={{ letterSpacing: '-0.02em' }}
-          >
-            &#10035;&#65038;
-          </span>
+          <img src="logo.png" alt="Logo" className="h-26 w-auto" />
         </div>
 
         {/* Desktop nav links */}
