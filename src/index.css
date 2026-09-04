@@ -41,6 +41,55 @@ img {
   background: var(--page-bg);
 }
 
+.advanced-dentistry {
+  position: relative;
+  width: 100%;
+  background: #080b0e;
+}
+
+.advanced-dentistry__track {
+  height: 700vh;
+}
+
+
+.advanced-dentistry__stage {
+  position: relative;
+  height: 100vh;
+  overflow: hidden;
+  background: #080b0e;
+}
+
+.advanced-dentistry__canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.advanced-dentistry__copy {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  padding: 0 8vw;
+  pointer-events: none;
+}
+
+.advanced-dentistry__copy [data-copy] {
+  position: absolute;
+  max-width: min(620px, 70vw);
+  margin: 0;
+  opacity: 0;
+}
+
+@media (max-width: 700px) {
+  .advanced-dentistry__track { height: 560vh; }
+  .advanced-dentistry__copy { padding: 0 1.25rem; }
+  .advanced-dentistry__copy [data-copy] { max-width: calc(100vw - 3rem); }
+}
+
 .site-footer {
   width: 100%;
   background: #080b0e;
@@ -465,6 +514,7 @@ img {
   letter-spacing: -0.08em;
   color: rgba(255, 255, 255, 0.98);
   font-weight: 800;
+  top: 10%;
 }
 
 .feature-proof {
@@ -472,6 +522,7 @@ img {
   align-items: center;
   gap: 0.8rem;
   margin-top: 1rem;
+  top: 80%;
 }
 
 .feature-proof__avatars {
@@ -520,6 +571,7 @@ img {
   font-size: clamp(1.1rem, 1.6vw, 1.7rem);
   line-height: 1.5;
   color: rgba(11, 29, 39, 0.8);
+  top: 40%;
 }
 
 .feature-tags {
@@ -527,6 +579,7 @@ img {
   flex-wrap: wrap;
   gap: 0.75rem;
   margin-top: 1.6rem;
+  top: 60%;
 }
 
 .feature-tag {
