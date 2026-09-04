@@ -36,8 +36,8 @@ function App() {
       <Hero />
       <Marquee />
       <AdvancedDentistry />
-      <Services />
       <Testimonials />
+      <Services />
       <ContactForm />
       <Footer />
     </main>

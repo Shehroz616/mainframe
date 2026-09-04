@@ -170,7 +170,7 @@ export default function AdvancedDentistry() {
         <div data-pinned-stage className="advanced-dentistry__stage">
           <canvas ref={canvasRef} className="advanced-dentistry__canvas" aria-hidden="true" />
           <div className="advanced-dentistry__copy">
-            <p id="advanced-dentistry-title" data-copy data-from="0.15" data-to="0.95" className="feature-title">
+            <p id="advanced-dentistry-title" data-copy data-from="0.05" data-to="0.95" className="feature-title">
               Restore Your True Smile
             </p>
             <p data-copy data-from="0.35" data-to="0.95" className="feature-copy">

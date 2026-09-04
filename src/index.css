@@ -228,7 +228,7 @@ img {
 .testimonials-section {
   position: relative;
   width: 100%;
-  background: #0b0b0e;
+  background: #ffffff;
   padding: 5rem 1.25rem 5.5rem;
 }
 
@@ -250,9 +250,9 @@ img {
   align-items: center;
   gap: 0.6rem;
   padding: 0.55rem 0.9rem;
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(8, 11, 14, 0.15);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.02);
+  background: rgba(8, 11, 14, 0.03);
 }
 
 .eyebrow-dot {
@@ -267,7 +267,7 @@ img {
   font-size: 0.72rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.8);
+  color: #080b0e;
 }
 
 .testimonials-title {
@@ -276,7 +276,7 @@ img {
   font-size: clamp(2.3rem, 5vw, 4.5rem);
   line-height: 0.98;
   letter-spacing: -0.06em;
-  color: #f3f5f7;
+  color: #080b0e;
 }
 
 .testimonial-grid {
@@ -291,10 +291,10 @@ img {
   justify-content: space-between;
   min-height: 360px;
   padding: 1.6rem;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 0;
   border-radius: 2rem;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.02));
-  box-shadow: 0 12px 38px rgba(0, 0, 0, 0.22);
+  background: #2ca8ff;
+  box-shadow: 0 12px 38px rgba(44, 168, 255, 0.2);
 }
 
 .contact-section {
@@ -844,7 +844,7 @@ img {
 .rating {
   font-size: 1rem;
   letter-spacing: 0.12em;
-  color: #ffd166;
+  color: #ffffff;
 }
 
 .service-badge {
@@ -857,13 +857,15 @@ img {
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
+  background: rgba(255, 255, 255, 0.16) !important;
+  color: #ffffff !important;
 }
 
 .testimonial-quote {
   margin: 0;
   font-size: clamp(1.15rem, 2vw, 1.6rem);
   line-height: 1.7;
-  color: rgba(255, 255, 255, 0.9);
+  color: #ffffff;
 }
 
 .testimonial-footer {
@@ -872,7 +874,7 @@ img {
   gap: 0.9rem;
   margin-top: 2rem;
   padding-top: 1rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 .avatar {
@@ -888,14 +890,14 @@ img {
 
 .customer-name {
   margin: 0;
-  color: #f5f7fa;
+  color: #ffffff;
   font-size: 1.05rem;
   font-weight: 700;
 }
 
 .customer-meta {
   margin: 0.15rem 0 0;
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(255, 255, 255, 0.78);
   font-size: 0.8rem;
 }
 
