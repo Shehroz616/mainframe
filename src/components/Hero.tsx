@@ -38,7 +38,7 @@ export function Hero() {
   }, []);
 
   return (
-    <section className="relative z-[1] flex h-screen flex-col justify-end overflow-hidden px-5 pb-12 sm:px-8 md:justify-center md:px-10 md:pb-0">
+    <section className="relative z-1 flex h-screen flex-col justify-end overflow-hidden px-5 pb-12 sm:px-8 md:justify-center md:px-10 md:pb-0">
       <BackgroundVideo />
       <div className="relative z-10 max-w-2xl">
         <p
@@ -47,14 +47,14 @@ export function Hero() {
             fontSize: 'clamp(18px, 4vw, 28px)',
             lineHeight: 1.3,
             fontWeight: 600,
-            color: '#000',
+            color: '#fff',
           }}
         >
           Hamdard Dental &amp; Skin Clinic
         </p>
 
         <p
-          className="mb-5 text-black sm:mb-6"
+          className="mb-5 text-white sm:mb-6"
           style={{
             fontSize: 'clamp(24px, 5vw, 62px)',
             lineHeight: 1.05,
@@ -67,7 +67,7 @@ export function Hero() {
         </p>
 
         <p
-          className="mb-5 text-black sm:mb-6"
+          className="mb-5 text-white sm:mb-6"
           style={{
             fontSize: 'clamp(18px, 4vw, 26px)',
             lineHeight: 1.35,

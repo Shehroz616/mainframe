@@ -14,13 +14,13 @@ export function Navbar() {
         </div>
 
         {/* Desktop nav links */}
-        <nav className="hidden flex-row text-[23px] text-black md:flex">
+        <nav className="hidden flex-row text-[23px] text-white md:flex gap-4">
           {NAV_LINKS.map((link, i) => (
             <span key={link} className="flex flex-row">
               <a href="#" className="transition-opacity hover:opacity-60">
                 {link}
               </a>
-              {i < NAV_LINKS.length - 1 && <span> &nbsp; </span>}
+              {i < NAV_LINKS.length - 1}
             </span>
           ))}
         </nav>
@@ -28,7 +28,7 @@ export function Navbar() {
         {/* Desktop CTA */}
         <a
           href="#"
-          className="hidden text-[23px] text-black underline underline-offset-2 transition-opacity hover:opacity-60 md:block"
+          className="hidden rounded-full bg-white px-5 py-2 text-[18px] font-medium text-black shadow-sm transition-transform duration-300 hover:-translate-y-0.5 hover:shadow-md md:block"
         >
           Get in touch
         </a>
@@ -84,7 +84,7 @@ export function Navbar() {
         ))}
         <a
           href="#"
-          className="text-[32px] font-medium text-black underline underline-offset-2"
+          className="rounded-full bg-white px-6 py-3 text-[24px] font-medium text-black shadow-sm transition-transform duration-300 hover:-translate-y-0.5 hover:shadow-md"
           onClick={() => setMenuOpen(false)}
         >
           Get in touch

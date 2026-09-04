@@ -170,18 +170,18 @@ export default function AdvancedDentistry() {
         <div data-pinned-stage className="advanced-dentistry__stage">
           <canvas ref={canvasRef} className="advanced-dentistry__canvas" aria-hidden="true" />
           <div className="advanced-dentistry__copy">
-            <p id="advanced-dentistry-title" data-copy data-from="0.15" data-to="0.80" className="feature-title">
+            <p id="advanced-dentistry-title" data-copy data-from="0.15" data-to="0.95" className="feature-title">
               Restore Your True Smile
             </p>
-            <p data-copy data-from="0.35" data-to="0.80" className="feature-copy">
+            <p data-copy data-from="0.35" data-to="0.95" className="feature-copy">
               Using advanced technology, we deliver comprehensive treatments for a healthy, confident smile.
             </p>
-            <p data-copy data-from="0.55" data-to="0.80" className="feature-tags">
+            <p data-copy data-from="0.55" data-to="0.95" className="feature-tags">
               <span className="feature-tag">Smile Design</span>
               <span className="feature-tag">Dental Implants</span>
               <span className="feature-tag">Teeth Whitening</span>
             </p>
-            <div data-copy data-from="0.70" data-to="0.80" className="feature-proof" aria-label="More than 2k patients">
+            <div data-copy data-from="0.70" data-to="0.95" className="feature-proof" aria-label="More than 2k patients">
               <div className="feature-proof__avatars" aria-hidden="true">
                 <span className="feature-avatar avatar-one"></span><span className="feature-avatar avatar-two"></span><span className="feature-avatar avatar-three"></span>
               </div>
