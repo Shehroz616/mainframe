@@ -1,6 +1,6 @@
 
 
-const marqueeText = 'SPARK · RENDER · IGNITE · UNFOLD · GENESIS · EVOLVE · PURPOSE · specialties ·';
+const marqueeText = 'SMILES · DENTAL CARE · IMPLANTS · WHITENING · ORTHODONTICS · WELLNESS · CONFIDENCE ·';
 const Marquee = () => {
   return (
     <section className="marquee-wrap relative z-10" aria-label="Brand marquee">

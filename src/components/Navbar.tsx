@@ -1,20 +1,29 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 const NAV_LINKS = ['About', 'Services', 'Reviews', 'Contact'];
 
 export function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const updateScrollState = () => setIsScrolled(window.scrollY > 24);
+    updateScrollState();
+    window.addEventListener('scroll', updateScrollState, { passive: true });
+
+    return () => window.removeEventListener('scroll', updateScrollState);
+  }, []);
 
   return (
     <>
-      <header className="fixed inset-x-0 top-0 z-50 flex items-center justify-between px-5 py-4 sm:px-8 sm:py-5">
+      <header className={`fixed inset-x-0  z-50 flex items-center justify-between px-5 py-1 transition-all duration-500 sm:px-8 sm:py-1  w-4/5 m-auto ${isScrolled ? 'bg-[#002142]/50 shadow-[0_8px_30px_rgba(0,0,0,0.16)] backdrop-blur-xl rounded-full top-2' : 'bg-transparent top-0'}`}>
         {/* Logo */}
         <div className="flex flex-row items-center gap-3">
-          <img src="logo.png" alt="Logo" className="h-26 w-auto" />
+          <img src="logo.png" alt="Logo" className={`${isScrolled ? 'h-16' : 'h-32'} w-auto transition-all duration-500`} />
         </div>
 
         {/* Desktop nav links */}
-        <nav className="hidden flex-row text-[23px] text-white md:flex gap-4">
+        <nav className={`transition-all duration-500 hidden flex-row text-white md:flex gap-4 ${isScrolled ? 'text-[16px]' : 'text-[23px]'}`}>
           {NAV_LINKS.map((link, i) => (
             <span key={link} className="flex flex-row">
               <a href="#" className="transition-opacity hover:opacity-60">
@@ -28,7 +37,7 @@ export function Navbar() {
         {/* Desktop CTA */}
         <a
           href="#"
-          className="hidden rounded-full bg-white px-5 py-2 text-[18px] font-medium text-black shadow-sm transition-transform duration-300 hover:-translate-y-0.5 hover:shadow-md md:block"
+          className={`hidden rounded-full bg-white px-5 py-2 transition-all duration-500  ${isScrolled ? 'text-[14px]':'text-[18px]'} font-medium text-black shadow-sm duration-300 hover:-translate-y-0.5 hover:shadow-md md:block`}
         >
           Get in touch
         </a>
@@ -39,10 +48,10 @@ export function Navbar() {
           aria-label="Toggle menu"
           aria-expanded={menuOpen}
           onClick={() => setMenuOpen((open) => !open)}
-          className="flex flex-col items-center justify-center gap-[5px] md:hidden"
+          className="flex flex-col items-center justify-center gap-1.5 md:hidden"
         >
           <span
-            className="h-[2px] w-6 bg-black transition-all duration-300"
+            className="h-0.5 w-6 bg-black transition-all duration-300"
             style={
               menuOpen
                 ? { transform: 'translateY(7px) rotate(45deg)' }
@@ -50,11 +59,11 @@ export function Navbar() {
             }
           />
           <span
-            className="h-[2px] w-6 bg-black transition-opacity duration-300"
+            className="h-0.5 w-6 bg-black transition-opacity duration-300"
             style={menuOpen ? { opacity: 0 } : undefined}
           />
           <span
-            className="h-[2px] w-6 bg-black transition-all duration-300"
+            className="h-0.5 w-6 bg-black transition-all duration-300"
             style={
               menuOpen
                 ? { transform: 'translateY(-7px) rotate(-45deg)' }
