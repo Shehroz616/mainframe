@@ -1,7 +1,6 @@
 import { useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import Lenis from 'lenis';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -124,14 +123,6 @@ export default function AdvancedDentistry() {
       resizeCanvas();
     };
 
-    const lenis = new Lenis({ lerp: 30.1, smoothWheel: true, autoRaf: false });
-    const animationFrame = (time: number) => {
-      lenis.raf(time);
-      ScrollTrigger.update();
-    };
-    gsap.ticker.add(animationFrame);
-    gsap.ticker.lagSmoothing(0);
-
     const textLayers = Array.from(section.querySelectorAll<HTMLElement>('[data-copy]'));
     const scrollTrigger = ScrollTrigger.create({
       trigger: track,
@@ -168,8 +159,6 @@ export default function AdvancedDentistry() {
       destroyed = true;
       window.removeEventListener('resize', resizeCanvas);
       scrollTrigger.kill();
-      gsap.ticker.remove(animationFrame);
-      lenis.destroy();
       cache.clear();
       pending.clear();
     };
