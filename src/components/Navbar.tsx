@@ -16,7 +16,7 @@ export function Navbar() {
 
   return (
     <>
-      <header className={`fixed inset-x-0  z-50 flex items-center justify-between px-5 py-1 transition-all duration-500 sm:px-8 sm:py-1  w-4/5 m-auto ${isScrolled ? 'bg-[#002142]/50 shadow-[0_8px_30px_rgba(0,0,0,0.16)] backdrop-blur-xl rounded-full top-2' : 'bg-transparent top-0'}`}>
+      <header className={`fixed inset-x-0  z-50 flex items-center justify-between px-5 py-1 transition-all duration-500 sm:px-8 sm:py-1  w-full lg:w-4/5 m-auto ${isScrolled ? 'bg-[#002142]/50 shadow-[0_8px_30px_rgba(0,0,0,0.16)] backdrop-blur-xl rounded-full top-2' : 'bg-transparent top-0'}`}>
         {/* Logo */}
         <div className="flex flex-row items-center gap-3">
           <img src="logo.png" alt="Logo" className={`${isScrolled ? 'h-16' : 'h-32'} w-auto transition-all duration-500`} />
@@ -51,7 +51,7 @@ export function Navbar() {
           className="flex flex-col items-center justify-center gap-1.5 md:hidden"
         >
           <span
-            className="h-0.5 w-6 bg-black transition-all duration-300"
+            className="h-0.5 w-6 bg-white transition-all duration-300"
             style={
               menuOpen
                 ? { transform: 'translateY(7px) rotate(45deg)' }
@@ -59,11 +59,11 @@ export function Navbar() {
             }
           />
           <span
-            className="h-0.5 w-6 bg-black transition-opacity duration-300"
+            className="h-0.5 w-6 bg-white transition-opacity duration-300"
             style={menuOpen ? { opacity: 0 } : undefined}
           />
           <span
-            className="h-0.5 w-6 bg-black transition-all duration-300"
+            className="h-0.5 w-6 bg-white transition-all duration-300"
             style={
               menuOpen
                 ? { transform: 'translateY(-7px) rotate(-45deg)' }

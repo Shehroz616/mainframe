@@ -10,6 +10,7 @@ import Testimonials from './components/Testimonials';
 import ContactForm from './components/ContactForm';
 import Footer from './components/Footer';
 import AdvancedDentistry from './components/AdvancedDentistry';
+import Preloader from './components/Preloader';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -31,7 +32,9 @@ function App() {
   }, []);
 
   return (
-    <main id="top" className="page-shell relative min-h-screen">
+    <>
+      <Preloader />
+      <main id="top" className="page-shell relative min-h-screen">
       <Navbar />
       <Hero />
       <Marquee />
@@ -40,7 +43,8 @@ function App() {
       <Services />
       <ContactForm />
       <Footer />
-    </main>
+      </main>
+    </>
   );
 }
 
