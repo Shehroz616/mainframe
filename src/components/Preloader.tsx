@@ -1,9 +1,14 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import lottie, { type AnimationItem } from 'lottie-web';
 
-const INITIAL_FRAMES = 40;
+declare const __TOTAL_FRAMES__: number;
+
+const TOTAL_FRAMES = __TOTAL_FRAMES__;
+const FRAME_LOAD_CONCURRENCY = 6;
 const VIDEO_SRC = '/hero-video-2.mp4';
+const LOTTIE_PATH = '/Dentist%20in%20Mask%20Looking%20Into%20Open%20Mouth%20of%20Patient.json';
 
-function loadInitialFrame(index: number) {
+function loadFrame(index: number) {
   return new Promise<void>((resolve) => {
     const image = new Image();
     const finish = () => resolve();
@@ -17,6 +22,25 @@ function loadInitialFrame(index: number) {
     image.onerror = finish;
     image.src = `/frames/frame_${String(index + 1).padStart(4, '0')}.jpg`;
   });
+}
+
+async function loadAllFrames() {
+  let nextIndex = 0;
+
+  const loadWorker = async () => {
+    while (nextIndex < TOTAL_FRAMES) {
+      const index = nextIndex;
+      nextIndex += 1;
+      await loadFrame(index);
+    }
+  };
+
+  await Promise.all(
+    Array.from(
+      { length: Math.min(FRAME_LOAD_CONCURRENCY, TOTAL_FRAMES) },
+      () => loadWorker(),
+    ),
+  );
 }
 
 function loadHeroVideo() {
@@ -34,12 +58,24 @@ function loadHeroVideo() {
 }
 
 export default function Preloader() {
+  const animationRef = useRef<HTMLDivElement>(null);
   const [isVisible, setIsVisible] = useState(true);
   const [isLeaving, setIsLeaving] = useState(false);
 
   useEffect(() => {
     const startedAt = performance.now();
     let removeTimer: number | undefined;
+    let animation: AnimationItem | undefined;
+
+    if (animationRef.current) {
+      animation = lottie.loadAnimation({
+        container: animationRef.current,
+        renderer: 'svg',
+        loop: true,
+        autoplay: true,
+        path: LOTTIE_PATH,
+      });
+    }
 
     const hide = () => {
       const remaining = Math.max(0, 850 - (performance.now() - startedAt));
@@ -51,11 +87,12 @@ export default function Preloader() {
 
     void Promise.all([
       loadHeroVideo(),
-      ...Array.from({ length: INITIAL_FRAMES }, (_, index) => loadInitialFrame(index)),
+      loadAllFrames(),
     ]).then(hide);
 
     return () => {
       if (removeTimer) window.clearTimeout(removeTimer);
+      animation?.destroy();
     };
   }, []);
 
@@ -63,11 +100,7 @@ export default function Preloader() {
 
   return (
     <div className={`site-preloader ${isLeaving ? 'is-leaving' : ''}`} role="status" aria-label="Loading Hamdard Dental">
-      <div className="site-preloader__mark" aria-hidden="true">
-        <div className="site-preloader__tooth" />
-        <span className="site-preloader__orbit site-preloader__orbit--one" />
-        <span className="site-preloader__orbit site-preloader__orbit--two" />
-      </div>
+      <div ref={animationRef} className="site-preloader__animation" aria-hidden="true" />
       <div className="site-preloader__label">
         <span>Hamdard</span>
         <small>Dental &amp; Skin Clinic</small>

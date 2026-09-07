@@ -7,7 +7,7 @@ gsap.registerPlugin(ScrollTrigger);
 declare const __TOTAL_FRAMES__: number;
 
 const TOTAL_FRAMES = __TOTAL_FRAMES__;
-const INITIAL_FRAMES = 40;
+const INITIAL_FRAMES = 300;
 const CACHE_RADIUS = 60;
 const PREFETCH_AHEAD = 15;
 
