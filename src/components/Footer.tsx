@@ -11,7 +11,7 @@ function Footer() {
       <div className="site-footer__inner">
         <div className="site-footer__top">
           <a className="footer-brand" href="#top" aria-label="Hamdard Dental and Skin Clinic home">
-            Hamdard<span>+</span>
+            <img src="/logo.png" alt="Hamdard Dental and Skin Clinic" />
           </a>
 
           <p className="footer-tagline">
@@ -40,7 +40,7 @@ function Footer() {
 
         <div className="site-footer__bottom">
           <span>Hamdard Dental &amp; Skin Clinic</span>
-          <span>Karachi, Pakistan</span>
+          <span>Gujranwala, Pakistan</span>
           <span>© 2026 All rights reserved</span>
         </div>
       </div>

@@ -164,16 +164,12 @@ img {
 
 .footer-brand {
   width: fit-content;
-  color: #ffffff;
-  font-size: clamp(2rem, 4vw, 4rem);
-  line-height: 0.9;
-  letter-spacing: -0.07em;
-  font-weight: 800;
   text-decoration: none;
 }
 
-.footer-brand span {
-  color: var(--services-bg);
+.footer-brand img {
+  width: clamp(9rem, 18vw, 14rem);
+  height: auto;
 }
 
 .footer-tagline {
