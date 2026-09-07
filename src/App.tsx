@@ -35,14 +35,14 @@ function App() {
     <>
       <Preloader />
       <main id="top" className="page-shell relative min-h-screen">
-      <Navbar />
-      <Hero />
-      <Marquee />
-      <AdvancedDentistry />
-      <Testimonials />
-      <Services />
-      <ContactForm />
-      <Footer />
+        <Navbar />
+        <Hero />
+        <Marquee />
+        <Services />
+        <Testimonials />
+        <AdvancedDentistry />
+        <ContactForm />
+        <Footer />
       </main>
     </>
   );
