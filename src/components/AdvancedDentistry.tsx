@@ -9,7 +9,7 @@ declare const __TOTAL_FRAMES__: number;
 const TOTAL_FRAMES = __TOTAL_FRAMES__;
 const INITIAL_FRAMES = 300;
 const CACHE_RADIUS = 60;
-const PREFETCH_AHEAD = 15;
+const PREFETCH_AHEAD = 25;
 
 type FrameImage = HTMLImageElement;
 
@@ -75,13 +75,14 @@ export default function AdvancedDentistry() {
       const scale = Math.max(width / image.naturalWidth, height / image.naturalHeight);
       const drawWidth = image.naturalWidth * scale;
       const drawHeight = image.naturalHeight * scale;
-      const horizontalOffset = width - drawWidth;
+      const x = width - drawWidth;
+      const y = height - drawHeight;
 
       context.clearRect(0, 0, canvas.width, canvas.height);
       context.drawImage(
         image,
-        horizontalOffset * pixelRatio,
-        (height - drawHeight) / 2 * pixelRatio,
+        x * pixelRatio,
+        y * pixelRatio,
         drawWidth * pixelRatio,
         drawHeight * pixelRatio,
       );
@@ -171,18 +172,18 @@ export default function AdvancedDentistry() {
         <div data-pinned-stage className="advanced-dentistry__stage">
           <canvas ref={canvasRef} className="advanced-dentistry__canvas" aria-hidden="true" />
           <div className="advanced-dentistry__copy">
-            <p id="advanced-dentistry-title" data-copy data-from="0.05" data-to="0.95" className="feature-title">
+            <p id="advanced-dentistry-title" data-copy data-from="0.95" data-to="1" className="feature-title">
               Restore Your True Smile
             </p>
-            <p data-copy data-from="0.35" data-to="0.95" className="feature-copy">
+            <p data-copy data-from="0.95" data-to="1" className="feature-copy">
               Using advanced technology, we deliver comprehensive treatments for a healthy, confident smile.
             </p>
-            <p data-copy data-from="0.55" data-to="0.95" className="feature-tags">
+            <p data-copy data-from="0.95" data-to="1" className="feature-tags">
               <span className="feature-tag">Smile Design</span>
               <span className="feature-tag">Dental Implants</span>
               <span className="feature-tag">Teeth Whitening</span>
             </p>
-            <div data-copy data-from="0.70" data-to="0.95" className="feature-proof" aria-label="More than 2k patients">
+            <div data-copy data-from="0.95" data-to="1" className="feature-proof" aria-label="More than 2k patients">
               <div className="feature-proof__avatars" aria-hidden="true">
                 <span className="feature-avatar avatar-one"></span><span className="feature-avatar avatar-two"></span><span className="feature-avatar avatar-three"></span>
               </div>

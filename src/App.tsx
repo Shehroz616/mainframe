@@ -11,6 +11,7 @@ import ContactForm from './components/ContactForm';
 import Footer from './components/Footer';
 import AdvancedDentistry from './components/AdvancedDentistry';
 import Preloader from './components/Preloader';
+import ToothScrollSection from './components/ToothScrollSection';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -36,11 +37,12 @@ function App() {
       <Preloader />
       <main id="top" className="page-shell relative min-h-screen">
         <Navbar />
-        <Hero />
+        <AdvancedDentistry />
         <Marquee />
         <Services />
+        <ToothScrollSection />
         <Testimonials />
-        <AdvancedDentistry />
+        <Hero />
         <ContactForm />
         <Footer />
       </main>

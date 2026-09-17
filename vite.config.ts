@@ -10,6 +10,6 @@ const totalFrames = readdirSync(resolve(__dirname, 'public/frames'))
 export default defineConfig({
   plugins: [react()],
   define: {
-    __TOTAL_FRAMES__: JSON.stringify(totalFrames),
+    __TOTAL_FRAMES__: 447,
   },
 })

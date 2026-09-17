@@ -7,7 +7,10 @@ export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
-    const updateScrollState = () => setIsScrolled(window.scrollY > 24);
+    const updateScrollState = () => {
+      setIsScrolled(window.scrollY > 4000);
+      console.log('Scroll position:', window.scrollY);
+    };
     updateScrollState();
     window.addEventListener('scroll', updateScrollState, { passive: true });
 
@@ -16,14 +19,14 @@ export function Navbar() {
 
   return (
     <>
-      <header className={`fixed inset-x-0  z-50 flex items-center justify-between px-5 py-1 transition-all duration-500 sm:px-8 sm:py-1  w-full lg:w-4/5 m-auto ${isScrolled ? 'bg-[#002142]/50 shadow-[0_8px_30px_rgba(0,0,0,0.16)] backdrop-blur-xl rounded-full top-2' : 'bg-transparent top-0'}`}>
+      <header className={`${isScrolled ? 'opacity-100' : 'opacity-0'} fixed inset-x-0  z-50 flex items-center justify-between px-5 py-1 transition-all duration-500 sm:px-8 sm:py-1  w-full lg:w-4/5 m-auto bg-white/80 shadow-[0_8px_30px_rgba(0,0,0,0.16)] backdrop-blur-xl rounded-full top-2`}>
         {/* Logo */}
         <div className="flex flex-row items-center gap-3">
-          <img src="logo.png" alt="Logo" className={`${isScrolled ? 'h-16' : 'h-32'} w-auto transition-all duration-500`} />
+          <img src="logo-blue.png" alt="Logo" className='h-16  w-auto transition-all duration-500' />
         </div>
 
         {/* Desktop nav links */}
-        <nav className={`transition-all duration-500 hidden flex-row text-white md:flex gap-4 ${isScrolled ? 'text-[16px]' : 'text-[23px]'}`}>
+        <nav className='transition-all duration-500 hidden flex-row text-black md:flex gap-4 text-[16px]'>
           {NAV_LINKS.map((link, i) => (
             <span key={link} className="flex flex-row">
               <a href="#" className="transition-opacity hover:opacity-60">
@@ -37,7 +40,7 @@ export function Navbar() {
         {/* Desktop CTA */}
         <a
           href="#"
-          className={`hidden rounded-full bg-white px-5 py-2 transition-all duration-500  ${isScrolled ? 'text-[14px]':'text-[18px]'} font-medium text-black shadow-sm duration-300 hover:-translate-y-0.5 hover:shadow-md md:block`}
+          className={`hidden rounded-full bg-[#2ca8ff] px-5 py-2 transition-all text-[14px] font-medium text-white shadow-sm duration-300 hover:-translate-y-0.5 hover:shadow-md md:block`}
         >
           Get in touch
         </a>

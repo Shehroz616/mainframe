@@ -50,14 +50,9 @@ body {
 }
 
 .site-preloader__animation {
-  width: 100vw;
-  height: min(70vh, 42rem);
-}
-
-.site-preloader__animation svg {
+  width: min(72vw, 34rem);
+  height: min(62vh, 30rem);
   display: block;
-  width: 100%;
-  height: 100%;
 }
 
 .site-preloader__label {
@@ -966,6 +961,180 @@ img {
   width: 100%;
   overflow: hidden;
   background: var(--services-bg);
+}
+
+.tooth-scroll-section {
+  position: relative;
+  height: 420vh;
+  overflow: clip;
+  background: #07131b url('/background.jpg') center / cover no-repeat;
+}
+
+/* .tooth-scroll-section::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(90deg, rgba(5, 17, 24, 0.94) 0%, rgba(5, 17, 24, 0.55) 38%, rgba(5, 17, 24, 0.18) 100%);
+  pointer-events: none;
+} */
+
+.tooth-scroll-stage {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  min-height: 42rem;
+  overflow: hidden;
+}
+
+.tooth-scroll-canvas {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.tooth-scroll-copy,
+.tooth-scroll-details,
+.tooth-scroll-mark {
+  position: absolute;
+  z-index: 3;
+}
+
+.tooth-scroll-copy {
+  top: clamp(2.5rem, 8vh, 6rem);
+  left: 50%;
+  width: min(72rem, calc(100% - 3rem));
+  transform: translateX(-50%);
+  opacity: 0;
+  text-align: center;
+}
+
+.tooth-scroll-kicker {
+  margin: 0 0 1.4rem;
+  color: #86d7ff;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.tooth-scroll-copy h2 {
+  max-width: 14ch;
+  margin: 0;
+  color: #f8fcff;
+  font-size: clamp(3.4rem, 9.2vw, 10rem);
+  line-height: 0.84;
+  letter-spacing: -0.08em;
+  text-wrap: balance;
+}
+
+.tooth-scroll-copy h2 span {
+  display: inline-block;
+  will-change: transform, opacity;
+}
+
+.tooth-scroll-intro {
+  max-width: 24rem;
+  margin: 1.8rem 0 0;
+  color: rgba(239, 249, 255, 0.72);
+  font-size: 1.05rem;
+  line-height: 1.55;
+}
+
+.tooth-scroll-details {
+  inset: 0;
+  transform: translateY(24px);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.tooth-scroll-feature {
+  position: absolute;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 0.8rem;
+  color: #f8fcff;
+  font-size: 0.72rem;
+}
+
+.tooth-scroll-feature p,
+.tooth-scroll-feature strong {
+  margin: 0;
+}
+
+.tooth-scroll-feature p {
+  color: rgba(239, 249, 255, 0.78);
+  font-size: 0.68rem;
+  letter-spacing: 0.02em;
+}
+
+.tooth-scroll-feature strong {
+  font-size: clamp(0.72rem, 1vw, 0.9rem);
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.tooth-scroll-feature__icon {
+  display: grid;
+  width: 3.3rem;
+  height: 3.3rem;
+  place-items: center;
+  border-radius: 0.8rem;
+  background: #050607;
+  color: #ffffff;
+  font-size: 1.35rem;
+  font-weight: 500;
+}
+
+.tooth-scroll-feature--top-left {
+  top: 26%;
+  left: clamp(1.5rem, 8vw, 8rem);
+}
+
+.tooth-scroll-feature--top-right {
+  top: 26%;
+  right: clamp(1.5rem, 8vw, 8rem);
+}
+
+.tooth-scroll-feature--bottom-left {
+  bottom: 18%;
+  left: clamp(1.5rem, 8vw, 8rem);
+}
+
+.tooth-scroll-feature--bottom-right {
+  right: clamp(1.5rem, 8vw, 8rem);
+  bottom: 18%;
+}
+
+.tooth-scroll-mark {
+  top: 2rem;
+  right: clamp(1.5rem, 4vw, 4rem);
+  color: rgba(221, 245, 255, 0.55);
+  font-size: 0.65rem;
+  letter-spacing: 0.18em;
+}
+
+@media (max-width: 700px) {
+  .tooth-scroll-section { height: 340vh; }
+  .tooth-scroll-stage { min-height: 34rem; }
+  .tooth-scroll-section::before { background: linear-gradient(180deg, rgba(5, 17, 24, 0.86), rgba(5, 17, 24, 0.34) 56%, rgba(5, 17, 24, 0.88)); }
+  .tooth-scroll-copy { top: 2.5rem; width: calc(100% - 2.7rem); }
+  .tooth-scroll-copy h2 { max-width: 9ch; font-size: clamp(3.2rem, 16vw, 6rem); }
+  .tooth-scroll-intro { max-width: 19rem; margin-top: 1rem; font-size: 0.95rem; }
+  .tooth-scroll-feature--top-left,
+  .tooth-scroll-feature--bottom-left { left: 1.35rem; }
+  .tooth-scroll-feature--top-right,
+  .tooth-scroll-feature--bottom-right { right: 1.35rem; }
+  .tooth-scroll-feature--top-left,
+  .tooth-scroll-feature--top-right { top: 27%; }
+  .tooth-scroll-feature--bottom-left,
+  .tooth-scroll-feature--bottom-right { bottom: 12%; }
+  .tooth-scroll-feature { gap: 0.45rem; }
+  .tooth-scroll-feature__icon { width: 2.6rem; height: 2.6rem; border-radius: 0.65rem; }
 }
 
 .services-sticky {
