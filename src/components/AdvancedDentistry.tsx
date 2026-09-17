@@ -62,6 +62,9 @@ export default function AdvancedDentistry() {
     let destroyed = false;
     let scrollDirection = 1;
     let lastProgress = 0;
+    let targetFrame = 0;
+    let displayFrame = 0;
+    let animationFrameId = 0;
     const cache = cacheRef.current;
     const pending = new Map<number, Promise<FrameImage>>();
 
@@ -78,19 +81,15 @@ export default function AdvancedDentistry() {
       const x = (width - drawWidth) / 2;
       const y = (height - drawHeight) / 2;
 
-      context.clearRect(0, 0, canvas.width, canvas.height);
-      context.drawImage(
-        image,
-        x * pixelRatio,
-        y * pixelRatio,
-        drawWidth * pixelRatio,
-        drawHeight * pixelRatio,
-      );
+      context.imageSmoothingEnabled = true;
+      context.imageSmoothingQuality = 'high';
+      context.clearRect(0, 0, width, height);
+      context.drawImage(image, x, y, drawWidth, drawHeight);
     };
 
     const requestFrame = (index: number) => {
       void loadFrame(index, cache, pending).then(() => {
-        if (index === currentFrameRef.current) drawFrame(index);
+        if (index === targetFrame) drawFrame(index);
       }).catch(() => undefined);
     };
 
@@ -112,11 +111,25 @@ export default function AdvancedDentistry() {
 
     const resizeCanvas = () => {
       const pixelRatio = window.devicePixelRatio || 1;
-      canvas.width = window.innerWidth * pixelRatio;
-      canvas.height = window.innerHeight * pixelRatio;
+      canvas.width = Math.round(window.innerWidth * pixelRatio);
+      canvas.height = Math.round(window.innerHeight * pixelRatio);
       canvas.style.width = `${window.innerWidth}px`;
       canvas.style.height = `${window.innerHeight}px`;
+      context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
       drawFrame(currentFrameRef.current);
+    };
+
+    const renderFrameLoop = () => {
+      if (destroyed) return;
+
+      displayFrame += (targetFrame - displayFrame) * 0.18;
+      const frameToRender = Math.round(displayFrame);
+      if (frameToRender !== currentFrameRef.current && cache.has(frameToRender)) {
+        currentFrameRef.current = frameToRender;
+        drawFrame(frameToRender);
+      }
+
+      animationFrameId = window.requestAnimationFrame(renderFrameLoop);
     };
 
     const initialLoad = async () => {
@@ -141,7 +154,7 @@ export default function AdvancedDentistry() {
         scrollDirection = progress >= lastProgress ? 1 : -1;
         lastProgress = progress;
         const frameIndex = 1 + Math.round(progress * (TOTAL_FRAMES - 1)) - 1;
-        currentFrameRef.current = frameIndex;
+        targetFrame = frameIndex;
         maintainCache(frameIndex);
         requestFrame(frameIndex);
         textLayers.forEach((layer) => {
@@ -155,10 +168,13 @@ export default function AdvancedDentistry() {
     scrollTrigger.update();
 
     void initialLoad();
+    resizeCanvas();
+    animationFrameId = window.requestAnimationFrame(renderFrameLoop);
     window.addEventListener('resize', resizeCanvas);
 
     return () => {
       destroyed = true;
+      window.cancelAnimationFrame(animationFrameId);
       window.removeEventListener('resize', resizeCanvas);
       scrollTrigger.kill();
       cache.clear();
