@@ -8,8 +8,8 @@ declare const __TOTAL_FRAMES__: number;
 
 const TOTAL_FRAMES = __TOTAL_FRAMES__;
 const INITIAL_FRAMES = 300;
-const CACHE_RADIUS = 60;
-const PREFETCH_AHEAD = 25;
+const CACHE_RADIUS = 120;
+const PREFETCH_AHEAD = 60;
 
 type FrameImage = HTMLImageElement;
 
