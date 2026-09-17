@@ -117,9 +117,7 @@ export default function Preloader() {
   return (
     <div className={`site-preloader ${isLeaving ? 'is-leaving' : ''}`} role="status" aria-label="Loading Hamdard Dental">
       <div className="site-preloader__card" aria-hidden="true">
-        <div className="site-preloader__tooth">
-          <span className="site-preloader__tooth-core" />
-        </div>
+        <img src="/logo-blue.png" alt="Hamdard logo" className="site-preloader__logo" />
         <div className="site-preloader__text-wrap">
           <span className="site-preloader__brand">Hamdard</span>
           <small className="site-preloader__sub">Dental &amp; Skin Clinic</small>

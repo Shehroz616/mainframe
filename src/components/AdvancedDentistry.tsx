@@ -10,6 +10,9 @@ const TOTAL_FRAMES = __TOTAL_FRAMES__;
 const INITIAL_FRAMES = 300;
 const CACHE_RADIUS = 120;
 const PREFETCH_AHEAD = 60;
+const IDLE_FRAME_COUNT = 60;
+const IDLE_FRAME_MIN = 0;
+const IDLE_FRAME_MAX = IDLE_FRAME_COUNT - 1;
 
 type FrameImage = HTMLImageElement;
 
@@ -65,6 +68,9 @@ export default function AdvancedDentistry() {
     let targetFrame = 0;
     let displayFrame = 0;
     let animationFrameId = 0;
+    let userHasScrolled = false;
+    let idleFrame = 0;
+    let idleDirection = 1;
     const cache = cacheRef.current;
     const pending = new Map<number, Promise<FrameImage>>();
 
@@ -122,7 +128,27 @@ export default function AdvancedDentistry() {
     const renderFrameLoop = () => {
       if (destroyed) return;
 
-      displayFrame += (targetFrame - displayFrame) * 0.18;
+      if (!userHasScrolled) {
+        idleFrame += idleDirection * 0.8;
+
+        if (idleFrame >= IDLE_FRAME_MAX) {
+          idleFrame = IDLE_FRAME_MAX;
+          idleDirection = -1;
+        }
+
+        if (idleFrame <= IDLE_FRAME_MIN) {
+          idleFrame = IDLE_FRAME_MIN;
+          idleDirection = 1;
+        }
+
+        targetFrame = Math.round(idleFrame);
+        maintainCache(targetFrame);
+        requestFrame(targetFrame);
+        displayFrame = targetFrame;
+      } else {
+        displayFrame += (targetFrame - displayFrame) * 0.18;
+      }
+
       const frameToRender = Math.round(displayFrame);
       if (frameToRender !== currentFrameRef.current && cache.has(frameToRender)) {
         currentFrameRef.current = frameToRender;
@@ -139,6 +165,12 @@ export default function AdvancedDentistry() {
     };
 
     const textLayers = Array.from(section.querySelectorAll<HTMLElement>('[data-copy]'));
+    const handleUserInteraction = () => {
+      if (!userHasScrolled) {
+        userHasScrolled = true;
+      }
+    };
+
     const scrollTrigger = ScrollTrigger.create({
       trigger: track,
       start: 'top top',
@@ -146,6 +178,7 @@ export default function AdvancedDentistry() {
       scrub: true,
       pin: '[data-pinned-stage]',
       onUpdate: (self) => {
+        userHasScrolled = true;
         const trackBounds = track.getBoundingClientRect();
         const scrollableDistance = track.offsetHeight - window.innerHeight;
         const progress = scrollableDistance > 0
@@ -171,11 +204,17 @@ export default function AdvancedDentistry() {
     resizeCanvas();
     animationFrameId = window.requestAnimationFrame(renderFrameLoop);
     window.addEventListener('resize', resizeCanvas);
+    window.addEventListener('wheel', handleUserInteraction, { passive: true });
+    window.addEventListener('touchmove', handleUserInteraction, { passive: true });
+    window.addEventListener('keydown', handleUserInteraction);
 
     return () => {
       destroyed = true;
       window.cancelAnimationFrame(animationFrameId);
       window.removeEventListener('resize', resizeCanvas);
+      window.removeEventListener('wheel', handleUserInteraction);
+      window.removeEventListener('touchmove', handleUserInteraction);
+      window.removeEventListener('keydown', handleUserInteraction);
       scrollTrigger.kill();
       cache.clear();
       pending.clear();
