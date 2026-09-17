@@ -120,6 +120,12 @@ body {
   text-transform: uppercase;
 }
 
+.site-preloader__progress {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
 .site-preloader__bar {
   position: relative;
   width: min(20rem, 58vw);
@@ -132,19 +138,23 @@ body {
 .site-preloader__bar-fill {
   position: absolute;
   inset: 0 auto 0 0;
-  width: 38%;
+  width: 0;
   border-radius: inherit;
   background: linear-gradient(90deg, #7bc5f6 0%, #1f8fce 100%);
-  animation: preloader-fill 1.5s ease-in-out infinite alternate;
+  transition: width 0.25s ease;
 }
 
-@keyframes preloader-fill {
-  0% { transform: translateX(-8%); }
-  100% { transform: translateX(162%); }
+.site-preloader__percent {
+  min-width: 3rem;
+  color: rgba(8, 24, 33, 0.8);
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .site-preloader__bar-fill { animation: none; }
+  .site-preloader__bar-fill { transition: none; }
 }
 
 img {
