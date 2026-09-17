@@ -75,8 +75,8 @@ export default function AdvancedDentistry() {
       const scale = Math.max(width / image.naturalWidth, height / image.naturalHeight);
       const drawWidth = image.naturalWidth * scale;
       const drawHeight = image.naturalHeight * scale;
-      const x = width - drawWidth;
-      const y = height - drawHeight;
+      const x = (width - drawWidth) / 2;
+      const y = (height - drawHeight) / 2;
 
       context.clearRect(0, 0, canvas.width, canvas.height);
       context.drawImage(
