@@ -42,11 +42,13 @@ body {
   gap: 1.25rem;
   background: linear-gradient(180deg, #f4fbff 0%, #e7f6ff 100%);
   color: #081821;
-  transition: opacity 0.65s ease, visibility 0.65s ease;
+  transition: transform 0.7s ease, opacity 0.7s ease, visibility 0.7s ease;
+  will-change: transform, opacity;
 }
 
 .site-preloader.is-leaving {
   opacity: 0;
+  transform: translateY(-6vh);
   visibility: hidden;
 }
 
