@@ -33,15 +33,15 @@ function Footer() {
           </nav>
 
           <div className="footer-socials" aria-label="Social media links">
-            <a href="#contact">Instagram</a>
-            <a href="#contact">Facebook</a>
+            <a target="_blank" rel="noopener noreferrer" href="https://www.instagram.com/hamdardclinic/">Instagram</a>
+            <a target="_blank" rel="noopener noreferrer" href="https://www.facebook.com/hamdardclinic">Facebook</a>
           </div>
         </div>
 
         <div className="site-footer__bottom">
           <span>Hamdard Dental &amp; Skin Clinic</span>
           <span>Gujranwala, Pakistan</span>
-          <span>© 2026 All rights reserved</span>
+          <span>© 2026 All rights reserved. Created by Growmify</span>
         </div>
       </div>
     </footer>

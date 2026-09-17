@@ -55,7 +55,7 @@ const ToothScrollSection = () => {
 
       const bounds = new THREE.Box3().setFromObject(model);
       const size = bounds.getSize(new THREE.Vector3());
-      model.scale.setScalar(1.4 / Math.max(size.x, size.y, size.z));
+      model.scale.setScalar(1.0 / Math.max(size.x, size.y, size.z));
       const centeredBounds = new THREE.Box3().setFromObject(model);
       model.position.sub(centeredBounds.getCenter(new THREE.Vector3()));
       toothGroup.add(model);
@@ -135,8 +135,8 @@ const ToothScrollSection = () => {
         <canvas ref={canvasRef} className="tooth-scroll-canvas" aria-hidden="true" />
         <div className="tooth-scroll-copy" data-tooth-copy>
           <p className="tooth-scroll-kicker">Precision, made visible</p>
-          <h2 id="tooth-scroll-title" aria-label="A closer look at exceptional care.">
-            {Array.from('A closer look at exceptional care.').map((letter, index) => (
+          <h2 id="tooth-scroll-title" aria-label="Dental Problems">
+            {Array.from('Dental Problems').map((letter, index) => (
               <span
                 key={`${letter}-${index}`}
                 data-tooth-letter
@@ -146,7 +146,7 @@ const ToothScrollSection = () => {
               </span>
             ))}
           </h2>
-          <p className="tooth-scroll-intro">Every detail matters when we build a healthier, more confident smile.</p>
+          <p className="tooth-scroll-intro">That can occour due to diabetes.</p>
         </div>
         <div className="tooth-scroll-details" data-tooth-details aria-label="Our care principles">
           <div className="tooth-scroll-feature tooth-scroll-feature--top-left">
