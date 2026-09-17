@@ -72,7 +72,7 @@ export default function AdvancedDentistry() {
       const image = cache.get(index);
       if (!image || destroyed) return;
 
-      const pixelRatio = window.devicePixelRatio || 1;
+      // const pixelRatio = window.devicePixelRatio || 1;
       const width = window.innerWidth;
       const height = window.innerHeight;
       const scale = Math.max(width / image.naturalWidth, height / image.naturalHeight);

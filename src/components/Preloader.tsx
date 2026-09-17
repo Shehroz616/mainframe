@@ -22,24 +22,24 @@ function loadFrame(index: number) {
   });
 }
 
-async function loadAllFrames() {
-  let nextIndex = 0;
+// async function loadAllFrames() {
+//   let nextIndex = 0;
 
-  const loadWorker = async () => {
-    while (nextIndex < TOTAL_FRAMES) {
-      const index = nextIndex;
-      nextIndex += 1;
-      await loadFrame(index);
-    }
-  };
+//   const loadWorker = async () => {
+//     while (nextIndex < TOTAL_FRAMES) {
+//       const index = nextIndex;
+//       nextIndex += 1;
+//       await loadFrame(index);
+//     }
+//   };
 
-  await Promise.all(
-    Array.from(
-      { length: Math.min(FRAME_LOAD_CONCURRENCY, TOTAL_FRAMES) },
-      () => loadWorker(),
-    ),
-  );
-}
+//   await Promise.all(
+//     Array.from(
+//       { length: Math.min(FRAME_LOAD_CONCURRENCY, TOTAL_FRAMES) },
+//       () => loadWorker(),
+//     ),
+//   );
+// }
 
 function loadHeroVideo() {
   return new Promise<void>((resolve) => {
