@@ -3,7 +3,6 @@ import { useEffect, useState } from 'react';
 declare const __TOTAL_FRAMES__: number;
 
 const TOTAL_FRAMES = __TOTAL_FRAMES__;
-const FRAME_LOAD_CONCURRENCY = 6;
 const VIDEO_SRC = '/hero-video-2.mp4';
 
 function loadFrame(index: number) {

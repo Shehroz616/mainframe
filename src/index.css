@@ -248,6 +248,82 @@ img {
   background: rgba(44, 168, 255, 0.14);
 }
 
+.footer-branches {
+  padding: 0 0 2rem;
+}
+
+.footer-branches__title {
+  margin: 0 0 1.5rem;
+  color: rgba(255, 255, 255, 0.86);
+  font-size: clamp(1.4rem, 2vw, 2rem);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  text-align: center;
+}
+
+.footer-branches__grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 1.25rem;
+  align-items: start;
+}
+
+.footer-branch {
+  padding: 0.5rem 0.5rem 0;
+  color: #ffffff;
+}
+
+.footer-branch h4 {
+  margin: 0 0 0.85rem;
+  font-size: clamp(1.25rem, 2vw, 2.3rem);
+  font-weight: 800;
+  line-height: 1.08;
+  color: #5ab9ff;
+  text-transform: uppercase;
+}
+
+.footer-branch__hours,
+.footer-branch__phones {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.footer-branch__hours span,
+.footer-branch__name,
+.footer-branch__friday {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.footer-branch__friday {
+  margin-top: 0.55rem;
+  color: #ff5a5a;
+}
+
+.footer-branch__name {
+  margin-top: 0.65rem;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.footer-branch__phones {
+  margin-top: 0.8rem;
+}
+
+.footer-branch__phones a {
+  color: #7ad7ff;
+  text-decoration: none;
+  font-weight: 700;
+  transition: opacity 0.2s ease;
+}
+
+.footer-branch__phones a:hover {
+  opacity: 0.8;
+}
+
 .site-footer__middle {
   display: flex;
   align-items: center;
@@ -280,7 +356,16 @@ img {
 }
 
 .footer-socials a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
   color: #90ee90;
+}
+
+.footer-socials svg {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
 }
 
 .site-footer__bottom {
@@ -291,6 +376,12 @@ img {
   padding-top: 1.25rem;
   color: rgba(255, 255, 255, 0.42);
   font-size: 0.72rem;
+}
+
+@media (max-width: 1100px) {
+  .footer-branches__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 700px) {
@@ -309,6 +400,10 @@ img {
   .footer-phone {
     justify-self: start;
     text-align: left;
+  }
+
+  .footer-branches__grid {
+    grid-template-columns: 1fr;
   }
 
   .site-footer__middle,
@@ -1007,12 +1102,199 @@ img {
   }
 }
 
-.services-section {
+.services-showcase {
   position: relative;
-  height: 120vh;
   width: 100%;
+  padding: 5.5rem 1.25rem 5rem;
+  background: linear-gradient(180deg, #1fa0ea 0%, #2ca8ff 100%);
+}
+
+.services-showcase__inner {
+  width: min(1200px, 100%);
+  margin: 0 auto;
+}
+
+.services-showcase__header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-bottom: 2.5rem;
+  text-align: center;
+  color: #ffffff;
+}
+
+.services-showcase__kicker {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.services-showcase__header h2 {
+  margin: 0;
+  font-size: clamp(2.8rem, 5vw, 5rem);
+  line-height: 0.92;
+  letter-spacing: -0.06em;
+}
+
+.services-showcase__layout {
+  display: grid;
+  grid-template-columns: 1.05fr 1.4fr;
+  gap: 2rem;
+  align-items: stretch;
+}
+
+.services-showcase__spotlight {
+  position: relative;
+  min-height: 36rem;
   overflow: hidden;
-  background: var(--services-bg);
+  border-radius: 2rem;
+  background: rgba(5, 21, 32, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow: 0 24px 55px rgba(11, 36, 55, 0.18);
+}
+
+.spotlight-badge {
+  position: absolute;
+  top: 1.1rem;
+  left: 1.1rem;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  padding: 0.5rem 0.85rem;
+  color: #f7fbff;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  backdrop-filter: blur(10px);
+}
+
+.services-showcase__spotlight img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: saturate(1.1) contrast(1.04);
+}
+
+.spotlight-panel {
+  position: absolute;
+  right: 1.15rem;
+  bottom: 1.15rem;
+  left: 1.15rem;
+  z-index: 2;
+  display: grid;
+  gap: 0.35rem;
+  border-radius: 1.2rem;
+  background: rgba(8, 17, 24, 0.48);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 1rem 1.1rem;
+  backdrop-filter: blur(12px);
+}
+
+.spotlight-panel span {
+  color: rgba(196, 233, 255, 0.86);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.spotlight-panel strong {
+  color: #ffffff;
+  font-size: clamp(1.2rem, 1.8vw, 1.8rem);
+  line-height: 1.15;
+  letter-spacing: -0.04em;
+}
+
+.services-showcase__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.15rem;
+}
+
+.service-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  min-height: 17rem;
+  padding: 1.2rem 1.1rem 1.1rem;
+  border-radius: 1.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 18px 40px rgba(9, 32, 52, 0.12);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  backdrop-filter: blur(8px);
+}
+
+.service-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 22px 50px rgba(9, 32, 52, 0.16);
+}
+
+.service-card--blue {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.service-card--mint {
+  background: rgba(156, 245, 222, 0.17);
+}
+
+.service-card--orange {
+  background: rgba(255, 224, 181, 0.16);
+}
+
+.service-card--slate {
+  background: rgba(17, 40, 55, 0.18);
+}
+
+.service-card__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  margin-bottom: 2rem;
+}
+
+.service-card__index {
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+}
+
+.service-card__tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.45rem 0.7rem;
+  border-radius: 999px;
+  background: rgba(5, 18, 26, 0.2);
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.service-card h3 {
+  margin: 0 0 0.8rem;
+  color: #ffffff;
+  font-size: clamp(1.4rem, 2vw, 2rem);
+  line-height: 1;
+  letter-spacing: -0.05em;
+}
+
+.service-card p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.98rem;
+  line-height: 1.7;
 }
 
 .tooth-scroll-section {
@@ -1112,6 +1394,9 @@ img {
   gap: 0.8rem;
   color: #f8fcff;
   font-size: 0.72rem;
+  background-color: rgba(255, 255, 255, 0.8);
+  border-radius: 1.2rem;
+  backdrop-filter: blur(8px);
 }
 
 .tooth-scroll-feature p,

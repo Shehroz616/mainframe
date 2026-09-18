@@ -1,97 +1,66 @@
-import { useEffect, useRef, useState } from 'react';
-
-const leftWords = ['Smile', 'Implants', 'Whitening', 'Aligners'];
-const rightWords = ['Clean', 'Care', 'Dental', 'Skin'];
-
-
-function clamp(value: number, min: number, max: number) {
-  return Math.min(Math.max(value, min), max);
-}
+const services = [
+  {
+    title: 'Smile Design',
+    short: 'Aesthetic precision',
+    description: 'Personalized cosmetic treatments that balance beauty, function, and confidence.',
+    accent: 'blue',
+  },
+  {
+    title: 'Dental Implants',
+    short: 'Permanent confidence',
+    description: 'Strong, stable implant solutions designed for long-term comfort and natural results.',
+    accent: 'mint',
+  },
+  {
+    title: 'Teeth Whitening',
+    short: 'Brighter smile',
+    description: 'Fast, safe whitening treatments that restore vibrancy and instantly refresh your look.',
+    accent: 'orange',
+  },
+  {
+    title: 'Skin Care',
+    short: 'Healthy glow',
+    description: 'Targeted skin treatments that support clarity, hydration, and a youthful complexion.',
+    accent: 'slate',
+  },
+];
 
 const Services = () => {
-  const sectionRef = useRef<HTMLElement | null>(null);
-  const [progress, setProgress] = useState(0);
-
-  useEffect(() => {
-    const section = sectionRef.current;
-    if (!section) return;
-
-    const updateProgress = () => {
-      const rect = section.getBoundingClientRect();
-      const sectionHeight = section.offsetHeight;
-      const windowHeight = window.innerHeight;
-      const nextProgress = clamp(-rect.top / (sectionHeight - windowHeight), 0, 1);
-      setProgress(nextProgress);
-    };
-
-    updateProgress();
-    window.addEventListener('scroll', updateProgress, { passive: true });
-    window.addEventListener('resize', updateProgress);
-
-    return () => {
-      window.removeEventListener('scroll', updateProgress);
-      window.removeEventListener('resize', updateProgress);
-    };
-  }, []);
-
-  const mobile = typeof window !== 'undefined' && window.innerWidth < 768;
-  const scaleFactor = mobile ? 0.5 : 1;
-
-  const leftOffsets = leftWords.map((_, index) => -(60 + index * 40) * scaleFactor * (1 - progress));
-  const rightOffsets = rightWords.map((_, index) => +(60 + index * 40) * scaleFactor * (1 - progress));
-  const opacity = 0.35 + progress * 0.65;
-
   return (
-    <section ref={sectionRef} id="services" className="services-section">
-      <img
-        className="services-character"
-        src="center-character.png"
-        alt="3D dental character"
-      />
-
-      <div className="services-sticky">
-        <div className="specialties-title-wrap" aria-label="specialties heading">
-          <h1 className="specialties specialties-back">Specialties</h1>
-          <h1 className="specialties specialties-layer-1">Specialties</h1>
-          <h1 className="specialties specialties-layer-2">Specialties</h1>
-          <h1 className="specialties specialties-layer-3">Specialties</h1>
-          <h1 className="specialties specialties-front">Specialties</h1>
+    <section id="services" className="services-showcase">
+      <div className="services-showcase__inner">
+        <div className="services-showcase__header">
+          <p className="services-showcase__kicker">Our specialties</p>
+          <h2>Complete care for your smile and skin.</h2>
         </div>
 
-        <div className="side-columns" aria-hidden="true">
-          <div className="side-column left-column">
-            {leftWords.map((word, index) => (
-              <span
-                key={word}
-                className="side-word"
-                style={{
-                  transform: `translateX(${leftOffsets[index]}px)`,
-                  opacity,
-                }}
-              >
-                {word}
-              </span>
-            ))}
+        <div className="services-showcase__layout">
+          <div className="services-showcase__spotlight">
+            <div className="spotlight-badge">Advanced dental care</div>
+            <img src="/washing-teeth.png" alt="Dental care treatment" />
+            <div className="spotlight-panel">
+              <span>360° smile transformation</span>
+              <strong>Beauty, comfort, and health in one place.</strong>
+            </div>
           </div>
 
-          <div className="side-column right-column">
-            {rightWords.map((word, index) => (
-              <span
-                key={word}
-                className="side-word"
-                style={{
-                  transform: `translateX(${rightOffsets[index]}px)`,
-                  opacity,
-                }}
-              >
-                {word}
-              </span>
+          <div className="services-showcase__grid">
+            {services.map((service, index) => (
+              <article key={service.title} className={`service-card service-card--${service.accent}`}>
+                <div className="service-card__top">
+                  <span className="service-card__index">0{index + 1}</span>
+                  <span className="service-card__tag">{service.short}</span>
+                </div>
+
+                <h3>{service.title}</h3>
+                <p>{service.description}</p>
+              </article>
             ))}
           </div>
         </div>
       </div>
     </section>
   );
-}
+};
 
 export default Services
