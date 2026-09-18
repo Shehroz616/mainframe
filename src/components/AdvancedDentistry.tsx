@@ -7,17 +7,14 @@ gsap.registerPlugin(ScrollTrigger);
 declare const __TOTAL_FRAMES__: number;
 
 const TOTAL_FRAMES = __TOTAL_FRAMES__;
-const INITIAL_FRAMES = 300;
+const INITIAL_FRAMES = 150;
 const CACHE_RADIUS = 120;
 const PREFETCH_AHEAD = 60;
-const IDLE_FRAME_COUNT = 60;
-const IDLE_FRAME_MIN = 0;
-const IDLE_FRAME_MAX = IDLE_FRAME_COUNT - 1;
 
 type FrameImage = HTMLImageElement;
 
 function framePath(index: number) {
-  return `/frames/frame_${String(index + 1).padStart(4, '0')}.jpg`;
+  return `/frames/ezgif-frame-${String(index + 1).padStart(3, '0')}.png`;
 }
 
 function loadFrame(
@@ -68,9 +65,7 @@ export default function AdvancedDentistry() {
     let targetFrame = 0;
     let displayFrame = 0;
     let animationFrameId = 0;
-    let userHasScrolled = false;
-    let idleFrame = 0;
-    let idleDirection = 1;
+    let isIntroPlaying = true;
     const cache = cacheRef.current;
     const pending = new Map<number, Promise<FrameImage>>();
 
@@ -78,7 +73,6 @@ export default function AdvancedDentistry() {
       const image = cache.get(index);
       if (!image || destroyed) return;
 
-      // const pixelRatio = window.devicePixelRatio || 1;
       const width = window.innerWidth;
       const height = window.innerHeight;
       const scale = Math.max(width / image.naturalWidth, height / image.naturalHeight);
@@ -93,10 +87,10 @@ export default function AdvancedDentistry() {
       context.drawImage(image, x, y, drawWidth, drawHeight);
     };
 
+    // Requests a frame into memory cache (never draws directly to avoid race conditions)
     const requestFrame = (index: number) => {
-      void loadFrame(index, cache, pending).then(() => {
-        if (index === targetFrame) drawFrame(index);
-      }).catch(() => undefined);
+      if (index < 0 || index >= TOTAL_FRAMES) return;
+      void loadFrame(index, cache, pending).catch(() => undefined);
     };
 
     const maintainCache = (currentIndex: number) => {
@@ -110,9 +104,26 @@ export default function AdvancedDentistry() {
 
       const prefetchStart = scrollDirection > 0 ? currentIndex + 1 : currentIndex - PREFETCH_AHEAD;
       const prefetchEnd = scrollDirection > 0 ? currentIndex + PREFETCH_AHEAD : currentIndex - 1;
-      for (let index = prefetchStart; scrollDirection > 0 ? index <= prefetchEnd : index >= prefetchEnd; index += scrollDirection) {
+      for (
+        let index = prefetchStart;
+        scrollDirection > 0 ? index <= prefetchEnd : index >= prefetchEnd;
+        index += scrollDirection
+      ) {
         if (index >= 0 && index < TOTAL_FRAMES) requestFrame(index);
       }
+    };
+
+    // Finds closest loaded frame to target to prevent frame jumps or blank canvases
+    const getNearestCachedFrame = (idealIndex: number): number | null => {
+      if (cache.has(idealIndex)) return idealIndex;
+      const maxSearch = 20;
+      for (let offset = 1; offset <= maxSearch; offset += 1) {
+        const primary = idealIndex - scrollDirection * offset;
+        if (primary >= 0 && primary < TOTAL_FRAMES && cache.has(primary)) return primary;
+        const secondary = idealIndex + scrollDirection * offset;
+        if (secondary >= 0 && secondary < TOTAL_FRAMES && cache.has(secondary)) return secondary;
+      }
+      return null;
     };
 
     const resizeCanvas = () => {
@@ -125,51 +136,89 @@ export default function AdvancedDentistry() {
       drawFrame(currentFrameRef.current);
     };
 
+    // ─── Scroll-driven render loop ───────────────────────────────────────────
     const renderFrameLoop = () => {
       if (destroyed) return;
 
-      if (!userHasScrolled) {
-        idleFrame += idleDirection * 0.8;
+      if (!isIntroPlaying) {
+        displayFrame += (targetFrame - displayFrame) * 0.22;
 
-        if (idleFrame >= IDLE_FRAME_MAX) {
-          idleFrame = IDLE_FRAME_MAX;
-          idleDirection = -1;
+        const idealFrame = Math.round(displayFrame);
+        const bestFrame = getNearestCachedFrame(idealFrame);
+
+        if (bestFrame !== null && bestFrame !== currentFrameRef.current) {
+          currentFrameRef.current = bestFrame;
+          drawFrame(bestFrame);
         }
 
-        if (idleFrame <= IDLE_FRAME_MIN) {
-          idleFrame = IDLE_FRAME_MIN;
-          idleDirection = 1;
+        if (!cache.has(idealFrame)) {
+          requestFrame(idealFrame);
         }
-
-        targetFrame = Math.round(idleFrame);
-        maintainCache(targetFrame);
-        requestFrame(targetFrame);
-        displayFrame = targetFrame;
-      } else {
-        displayFrame += (targetFrame - displayFrame) * 0.18;
-      }
-
-      const frameToRender = Math.round(displayFrame);
-      if (frameToRender !== currentFrameRef.current && cache.has(frameToRender)) {
-        currentFrameRef.current = frameToRender;
-        drawFrame(frameToRender);
       }
 
       animationFrameId = window.requestAnimationFrame(renderFrameLoop);
     };
 
-    const initialLoad = async () => {
-      await Promise.all(Array.from({ length: INITIAL_FRAMES }, (_, index) => loadFrame(index, cache, pending)));
-      if (destroyed) return;
+    // ─── Intro: play frames 0–(INITIAL_FRAMES-1) like a smooth video ─────────
+    const INTRO_FPS = 30;
+    const INTRO_MS = 1000 / INTRO_FPS;
+    let introTimerId: ReturnType<typeof setTimeout> | null = null;
+
+    const runIntro = async () => {
       resizeCanvas();
+
+      for (let i = 0; i < INITIAL_FRAMES; i++) {
+        if (destroyed || !isIntroPlaying) break;
+
+        await loadFrame(i, cache, pending).catch(() => undefined);
+        if (destroyed || !isIntroPlaying) break;
+
+        currentFrameRef.current = i;
+        targetFrame = i;
+        displayFrame = i;
+        drawFrame(i);
+
+        await new Promise<void>((resolve) => {
+          introTimerId = setTimeout(resolve, INTRO_MS);
+        });
+      }
+
+      if (destroyed) return;
+
+      const lastIntroFrame = Math.min(INITIAL_FRAMES - 1, TOTAL_FRAMES - 1);
+      if (isIntroPlaying) {
+        targetFrame = lastIntroFrame;
+        displayFrame = lastIntroFrame;
+        currentFrameRef.current = lastIntroFrame;
+        isIntroPlaying = false;
+      }
+
+      animationFrameId = window.requestAnimationFrame(renderFrameLoop);
+
+      // Quietly prefetch remaining frames during idle time
+      const prefetchRemaining = (startIndex: number) => {
+        if (destroyed || startIndex >= TOTAL_FRAMES) return;
+
+        const schedule =
+          typeof window.requestIdleCallback === 'function'
+            ? (cb: () => void) => window.requestIdleCallback(cb, { timeout: 2000 })
+            : (cb: () => void) => window.requestAnimationFrame(cb);
+
+        schedule(() => {
+          const batchSize = 20;
+          const end = Math.min(startIndex + batchSize, TOTAL_FRAMES);
+          const loads: Promise<FrameImage | void>[] = [];
+          for (let i = startIndex; i < end; i++) {
+            if (!cache.has(i)) loads.push(loadFrame(i, cache, pending).catch(() => undefined));
+          }
+          void Promise.all(loads).then(() => prefetchRemaining(end));
+        });
+      };
+
+      prefetchRemaining(INITIAL_FRAMES);
     };
 
     const textLayers = Array.from(section.querySelectorAll<HTMLElement>('[data-copy]'));
-    const handleUserInteraction = () => {
-      if (!userHasScrolled) {
-        userHasScrolled = true;
-      }
-    };
 
     const scrollTrigger = ScrollTrigger.create({
       trigger: track,
@@ -178,31 +227,61 @@ export default function AdvancedDentistry() {
       scrub: true,
       pin: '[data-pinned-stage]',
       onUpdate: (self) => {
-        userHasScrolled = true;
         const trackBounds = track.getBoundingClientRect();
         const scrollableDistance = track.offsetHeight - window.innerHeight;
         const progress = scrollableDistance > 0
           ? Math.min(1, Math.max(0, -trackBounds.top / scrollableDistance))
           : self.progress;
+
         scrollDirection = progress >= lastProgress ? 1 : -1;
         lastProgress = progress;
-        const frameIndex = 1 + Math.round(progress * (TOTAL_FRAMES - 1)) - 1;
-        targetFrame = frameIndex;
-        maintainCache(frameIndex);
-        requestFrame(frameIndex);
+
         textLayers.forEach((layer) => {
           const from = Number(layer.dataset.from);
           const to = Number(layer.dataset.to);
           const visible = progress >= from && progress <= to;
           gsap.to(layer, { autoAlpha: visible ? 1 : 0, duration: 0.6, ease: 'power2.out', overwrite: true });
         });
+
+        // Hand off control to scroll if user scrolls while intro is active
+        if (isIntroPlaying && progress > 0.005) {
+          isIntroPlaying = false;
+          if (introTimerId !== null) clearTimeout(introTimerId);
+        }
+
+        if (!isIntroPlaying) {
+          const frameIndex = INITIAL_FRAMES + progress * (TOTAL_FRAMES - 1 - INITIAL_FRAMES);
+          const safeFrame = Math.min(TOTAL_FRAMES - 1, Math.max(0, frameIndex));
+          targetFrame = safeFrame;
+          maintainCache(Math.round(safeFrame));
+        }
       },
     });
     scrollTrigger.update();
 
-    void initialLoad();
-    resizeCanvas();
-    animationFrameId = window.requestAnimationFrame(renderFrameLoop);
+    // Start the intro only when the preloader signals it has reached 100%
+    // and its exit animation has begun. This keeps the canvas dark while the
+    // loading screen is still visible.
+    let preloaderReadyListener: (() => void) | null = null;
+
+    const startWhenReady = () => {
+      if (window.__preloaderReady) {
+        // Event already fired before we got here (race condition).
+        void runIntro();
+      } else {
+        preloaderReadyListener = () => { void runIntro(); };
+        window.addEventListener('preloader:ready', preloaderReadyListener, { once: true });
+      }
+    };
+
+    const handleUserInteraction = () => {
+      if (isIntroPlaying) {
+        isIntroPlaying = false;
+        if (introTimerId !== null) clearTimeout(introTimerId);
+      }
+    };
+
+    startWhenReady();
     window.addEventListener('resize', resizeCanvas);
     window.addEventListener('wheel', handleUserInteraction, { passive: true });
     window.addEventListener('touchmove', handleUserInteraction, { passive: true });
@@ -210,6 +289,10 @@ export default function AdvancedDentistry() {
 
     return () => {
       destroyed = true;
+      if (introTimerId !== null) clearTimeout(introTimerId);
+      if (preloaderReadyListener) {
+        window.removeEventListener('preloader:ready', preloaderReadyListener);
+      }
       window.cancelAnimationFrame(animationFrameId);
       window.removeEventListener('resize', resizeCanvas);
       window.removeEventListener('wheel', handleUserInteraction);
@@ -242,7 +325,7 @@ export default function AdvancedDentistry() {
               <div className="feature-proof__avatars" aria-hidden="true">
                 <span className="feature-avatar avatar-one"></span><span className="feature-avatar avatar-two"></span><span className="feature-avatar avatar-three"></span>
               </div>
-                <span className="feature-proof__count">+2k</span>
+              <span className="feature-proof__count">+2k</span>
             </div>
 
           </div>

@@ -10,6 +10,6 @@ import { defineConfig } from 'vite'
 export default defineConfig({
   plugins: [react()],
   define: {
-    __TOTAL_FRAMES__: 447,
+    __TOTAL_FRAMES__: 300,
   },
 })

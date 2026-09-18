@@ -5,40 +5,6 @@ const footerLinks = [
   { label: 'Contact', href: '#contact' },
 ];
 
-const clinicBranches = [
-  {
-    location: 'Ghakhar',
-    hours: ['Morning 11:30 am to 03:00 pm', 'Evening 06:30 pm to 09:30 pm'],
-    friday: 'Friday Off *',
-    phones: ['0336-9882017', '0313-4882017'],
-    name: 'Ashfaq Dental Clinic',
-  },
-  {
-    location: 'DC Colony',
-    hours: ['Working Hours:', 'After Namaz-e-Magrib to 10:00 pm'],
-    friday: 'Friday Off *',
-    phones: ['0312-663 3882', '0324-200 0912', '055-378 2301'],
-  },
-  {
-    location: 'Rahwali',
-    hours: ['Working Hours:', 'Morning 11:30 am to 03:00 pm', 'Evening 06:30 pm to 09:30 pm'],
-    friday: 'Friday Off *',
-    phones: ['0320-666 9099', '0331-666 9099', '055-382 9072'],
-  },
-  {
-    location: 'Wapda Town',
-    hours: ['Working Hours:', '04:00 pm to 09:00 pm'],
-    friday: 'Friday Off *',
-    phones: ['0301 6633882', '0336 6633882'],
-  },
-  {
-    location: 'Satellite Town',
-    hours: ['Working Hours:', '02:00 PM to 10:00 PM'],
-    friday: 'Friday Off *',
-    phones: ['0320-666 00 77'],
-  },
-];
-
 function Footer() {
   return (
     <footer className="site-footer">
@@ -55,35 +21,6 @@ function Footer() {
           <a className="footer-phone" href="tel:+923001234567">
             +92 300 1234567 <span aria-hidden="true">&#8599;</span>
           </a>
-        </div>
-
-        <div className="footer-branches" aria-label="Clinic branches and contact details">
-          <h3 className="footer-branches__title">Dental Clinic</h3>
-          <div className="footer-branches__grid">
-            {clinicBranches.map((branch) => (
-              <article key={branch.location} className="footer-branch">
-                <h4>{branch.location}</h4>
-
-                <div className="footer-branch__hours">
-                  {branch.hours.map((line) => (
-                    <span key={`${branch.location}-${line}`}>{line}</span>
-                  ))}
-                </div>
-
-                <p className="footer-branch__friday">{branch.friday}</p>
-
-                {branch.name ? <p className="footer-branch__name">{branch.name}</p> : null}
-
-                <div className="footer-branch__phones">
-                  {branch.phones.map((phone) => (
-                    <a key={`${branch.location}-${phone}`} href={`tel:${phone.replace(/\s+/g, '')}`}>
-                      {phone}
-                    </a>
-                  ))}
-                </div>
-              </article>
-            ))}
-          </div>
         </div>
 
         <div className="site-footer__middle">
