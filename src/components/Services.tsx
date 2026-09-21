@@ -1,28 +1,29 @@
 const services = [
   {
-    title: 'Smile Design',
-    short: 'Aesthetic precision',
-    description: 'Personalized cosmetic treatments that balance beauty, function, and confidence.',
+    title: 'Dental Implants',
+    short: 'Permanent confidence',
+    description: 'Strong, stable implant solutions designed for long-term comfort and natural function.',
     accent: 'blue',
   },
   {
-    title: 'Dental Implants',
-    short: 'Permanent confidence',
-    description: 'Strong, stable implant solutions designed for long-term comfort and natural results.',
+    title: 'Braces and Invisalign',
+    short: 'Precise alignment',
+    description: 'Modern orthodontic solutions that help create straighter, healthier smiles with comfort in mind.',
     accent: 'mint',
   },
   {
-    title: 'Teeth Whitening',
-    short: 'Brighter smile',
-    description: 'Fast, safe whitening treatments that restore vibrancy and instantly refresh your look.',
+    title: 'Dental Veneers',
+    short: 'Smile makeover',
+    description: 'Custom veneers that enhance shape, shade, and symmetry for a more confident smile.',
     accent: 'orange',
   },
   {
-    title: 'Skin Care',
-    short: 'Healthy glow',
-    description: 'Targeted skin treatments that support clarity, hydration, and a youthful complexion.',
+    title: 'Clear Aligners',
+    short: 'Invisible correction',
+    description: 'Discreet, removable aligners that gradually straighten teeth with less interruption to daily life.',
     accent: 'slate',
   },
+
 ];
 
 const Services = () => {

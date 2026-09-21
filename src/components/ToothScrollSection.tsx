@@ -150,24 +150,24 @@ const ToothScrollSection = () => {
         </div>
         <div className="tooth-scroll-details" data-tooth-details aria-label="Our care principles">
           <div className="tooth-scroll-feature tooth-scroll-feature--top-left">
-            <p>01 / Precision</p>
+            {/* <p>01 / Precision</p> */}
             <span className="tooth-scroll-feature__icon" aria-hidden="true">+</span>
-            <strong>Clear treatment<br />plans</strong>
+            <strong>Sensitivity</strong>
           </div>
           <div className="tooth-scroll-feature tooth-scroll-feature--top-right">
             <span className="tooth-scroll-feature__icon" aria-hidden="true">*</span>
-            <p>02 / Gentle care</p>
-            <strong>Comfort at<br />every step</strong>
+            {/* <p>02 / Gentle care</p> */}
+            <strong>Calculus</strong>
           </div>
           <div className="tooth-scroll-feature tooth-scroll-feature--bottom-left">
-            <strong>Natural-looking<br />results</strong>
+            <strong>Periodontitis</strong>
             <span className="tooth-scroll-feature__icon" aria-hidden="true">o</span>
-            <p>03 / Confidence</p>
+            {/* <p>03 / Confidence</p> */}
           </div>
           <div className="tooth-scroll-feature tooth-scroll-feature--bottom-right">
-            <strong>Health that<br />lasts</strong>
+            <strong>Gingivitis</strong>
             <span className="tooth-scroll-feature__icon" aria-hidden="true">^</span>
-            <p>04 / Long-term</p>
+            {/* <p>04 / Long-term</p> */}
           </div>
         </div>
         <div className="tooth-scroll-mark" aria-hidden="true">HAMDARD / 03</div>

@@ -235,7 +235,7 @@ img {
 
 .site-footer__top {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: auto 1fr 1fr;
   align-items: center;
   gap: 1.5rem;
   padding-bottom: 3.5rem;
@@ -251,33 +251,27 @@ img {
   height: auto;
 }
 
-.footer-tagline {
-  justify-self: center;
-  max-width: 180px;
+.footer-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  min-width: 0;
+}
+
+.footer-info__label {
+  color: rgba(255, 255, 255, 0.52);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.footer-info__value {
   margin: 0;
-  color: rgba(255, 255, 255, 0.62);
-  font-size: 1rem;
-  line-height: 1.35;
-  text-align: center;
-}
-
-.footer-phone {
-  justify-self: end;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.55rem;
-  padding: 0.75rem 1rem;
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  border-radius: 999px;
-  color: #ffffff;
+  color: rgba(255, 255, 255, 0.82);
   font-size: 0.95rem;
-  text-decoration: none;
-  transition: background 0.2s ease, border-color 0.2s ease;
-}
-
-.footer-phone:hover {
-  border-color: rgba(44, 168, 255, 0.7);
-  background: rgba(44, 168, 255, 0.14);
+  line-height: 1.5;
+  max-width: 28rem;
 }
 
 .footer-branches {
@@ -428,8 +422,8 @@ img {
     padding-bottom: 2.5rem;
   }
 
-  .footer-tagline,
-  .footer-phone {
+  .footer-info,
+  .footer-info__value {
     justify-self: start;
     text-align: left;
   }
@@ -813,7 +807,6 @@ img {
 }
 
 .contact-subheading {
-  margin: 0;
   color: #0d1b26;
   font-size: clamp(1.8rem, 3vw, 2.5rem);
   line-height: 1.1;
@@ -1692,11 +1685,12 @@ img {
   grid-template-columns: 1fr auto;
   align-items: center;
   gap: 0.8rem;
-  color: #f8fcff;
+  color: black;
   font-size: 0.72rem;
   background-color: rgba(255, 255, 255, 0.8);
   border-radius: 1.2rem;
   backdrop-filter: blur(8px);
+  padding: 0.65rem 0.9rem;
 }
 
 .tooth-scroll-feature p,
@@ -1705,13 +1699,13 @@ img {
 }
 
 .tooth-scroll-feature p {
-  color: rgba(239, 249, 255, 0.78);
+  color: black  ;
   font-size: 0.68rem;
   letter-spacing: 0.02em;
 }
 
 .tooth-scroll-feature strong {
-  font-size: clamp(0.72rem, 1vw, 0.9rem);
+  font-size: clamp(1rem, 1.75vw, 2rem);
   font-weight: 600;
   line-height: 1.25;
 }
@@ -1730,21 +1724,21 @@ img {
 
 .tooth-scroll-feature--top-left {
   top: 26%;
-  left: clamp(1.5rem, 8vw, 8rem);
+  left: 25%;
 }
 
 .tooth-scroll-feature--top-right {
   top: 26%;
-  right: clamp(1.5rem, 8vw, 8rem);
+  right: 25%;
 }
 
 .tooth-scroll-feature--bottom-left {
   bottom: 18%;
-  left: clamp(1.5rem, 8vw, 8rem);
+  left: 25%;
 }
 
 .tooth-scroll-feature--bottom-right {
-  right: clamp(1.5rem, 8vw, 8rem);
+  right: 25%;
   bottom: 18%;
 }
 

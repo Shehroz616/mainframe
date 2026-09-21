@@ -5,6 +5,17 @@ const footerLinks = [
   { label: 'Contact', href: '#contact' },
 ];
 
+const footerMeta = [
+  {
+    label: 'Timings',
+    value: 'Mon - Sat | 11:30 AM - 09:30 PM',
+  },
+  {
+    label: 'Locations',
+    value: 'Ghakhar, DC Colony, Rahwali, Wapda Town, Satellite Town',
+  },
+];
+
 function Footer() {
   return (
     <footer className="site-footer">
@@ -14,13 +25,12 @@ function Footer() {
             <img src="/logo.png" alt="Hamdard Dental and Skin Clinic" />
           </a>
 
-          <p className="footer-tagline">
-            Gentle care. Modern confidence.
-          </p>
-
-          <a className="footer-phone" href="tel:+923001234567">
-            +92 300 1234567 <span aria-hidden="true">&#8599;</span>
-          </a>
+          {footerMeta.map((item) => (
+            <div key={item.label} className="footer-info">
+              <span className="footer-info__label">{item.label}</span>
+              <p className="footer-info__value">{item.value}</p>
+            </div>
+          ))}
         </div>
 
         <div className="site-footer__middle">
