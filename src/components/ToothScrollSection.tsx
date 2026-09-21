@@ -151,22 +151,22 @@ const ToothScrollSection = () => {
         <div className="tooth-scroll-details" data-tooth-details aria-label="Our care principles">
           <div className="tooth-scroll-feature tooth-scroll-feature--top-left">
             {/* <p>01 / Precision</p> */}
-            <span className="tooth-scroll-feature__icon" aria-hidden="true">+</span>
+            <span className="tooth-scroll-feature__icon feature-1" aria-hidden="true"></span>
             <strong>Sensitivity</strong>
           </div>
           <div className="tooth-scroll-feature tooth-scroll-feature--top-right">
-            <span className="tooth-scroll-feature__icon" aria-hidden="true">*</span>
+            <span className="tooth-scroll-feature__icon feature-2" aria-hidden="true"></span>
             {/* <p>02 / Gentle care</p> */}
             <strong>Calculus</strong>
           </div>
           <div className="tooth-scroll-feature tooth-scroll-feature--bottom-left">
             <strong>Periodontitis</strong>
-            <span className="tooth-scroll-feature__icon" aria-hidden="true">o</span>
+            <span className="tooth-scroll-feature__icon feature-3" aria-hidden="true"></span>
             {/* <p>03 / Confidence</p> */}
           </div>
           <div className="tooth-scroll-feature tooth-scroll-feature--bottom-right">
             <strong>Gingivitis</strong>
-            <span className="tooth-scroll-feature__icon" aria-hidden="true">^</span>
+            <span className="tooth-scroll-feature__icon feature-4" aria-hidden="true"></span>
             {/* <p>04 / Long-term</p> */}
           </div>
         </div>

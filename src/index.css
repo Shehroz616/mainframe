@@ -55,17 +55,17 @@ body {
 .site-preloader__card {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  padding: 0.9rem 1.3rem;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.72);
-  border: 1px solid rgba(15, 36, 46, 0.08);
-  box-shadow: 0 20px 40px rgba(10, 30, 42, 0.08);
-  backdrop-filter: blur(10px);
+  /* gap: 1rem; */
+  /* padding: 0.9rem 1.3rem; */
+  /* border-radius: 999px; */
+  /* background: rgba(255, 255, 255, 0.72); */
+  /* border: 1px solid rgba(15, 36, 46, 0.08); */
+  /* box-shadow: 0 20px 40px rgba(10, 30, 42, 0.08); */
+  /* backdrop-filter: blur(10px); */
 }
 
 .site-preloader__logo {
-  width: 3.6rem;
+  width: 10.6rem;
   height: auto;
   object-fit: contain;
   filter: drop-shadow(0 10px 16px rgba(24, 92, 144, 0.12));
@@ -1720,6 +1720,22 @@ img {
   color: #ffffff;
   font-size: 1.35rem;
   font-weight: 500;
+  background: url("/problems-image.jfif");
+  background-repeat: no-repeat;
+  background-size: 105px;
+}
+
+.tooth-scroll-feature__icon.feature-1{
+  background-position: 0px 0px;
+}
+.tooth-scroll-feature__icon.feature-2{
+  background-position: -52px 0px;
+}
+.tooth-scroll-feature__icon.feature-3{
+  background-position: 0px -52px;
+}
+.tooth-scroll-feature__icon.feature-4{
+  background-position: -53px -52px;
 }
 
 .tooth-scroll-feature--top-left {
