@@ -7,7 +7,7 @@ gsap.registerPlugin(ScrollTrigger);
 declare const __TOTAL_FRAMES__: number;
 
 const TOTAL_FRAMES = __TOTAL_FRAMES__;
-const INITIAL_FRAMES = 150;
+const INITIAL_FRAMES = 120;
 const CACHE_RADIUS = 120;
 const PREFETCH_AHEAD = 60;
 
@@ -20,7 +20,7 @@ const PREFETCH_AHEAD = 60;
 //     0..INITIAL_FRAMES in the HTTP cache; this is a safety margin.
 const INTRO_FPS = 60;
 const INTRO_FRAME_STEP = 1;
-const INTRO_PREBUFFER = 30;
+const INTRO_PREBUFFER = 60;
 
 // Keys that would otherwise scroll the page (Space, arrows, Page Up/Down,
 // Home, End) — blocked while the intro is playing so keyboard users can't
