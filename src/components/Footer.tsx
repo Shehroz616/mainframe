@@ -49,13 +49,13 @@ function Footer() {
                 <circle cx="12" cy="12" r="4.1" fill="none" stroke="currentColor" strokeWidth="1.6" />
                 <circle cx="17.2" cy="6.8" r="1.1" fill="currentColor" />
               </svg>
-              <span>Instagram</span>
+              {/* <span>Instagram</span> */}
             </a>
             <a target="_blank" rel="noopener noreferrer" href="https://www.facebook.com/hamdardclinic" aria-label="Facebook">
               <svg viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M13.5 21v-8h2.7l.4-3.2h-3.1V7.3c0-.9.3-1.6 1.7-1.6h1.8V2.7c-.3 0-1.4-.1-2.7-.1-2.7 0-4.5 1.6-4.5 4.7v2.6H7v3.2h3.1v8h3.4Z" fill="currentColor" />
               </svg>
-              <span>Facebook</span>
+              {/* <span>Facebook</span> */}
             </a>
           </div>
         </div>
