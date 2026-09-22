@@ -11,15 +11,16 @@ const INITIAL_FRAMES = 150;
 const CACHE_RADIUS = 120;
 const PREFETCH_AHEAD = 60;
 
-// Intro playback speed. By the time the intro starts, Preloader.tsx has
-// already loaded these frames into the browser's HTTP cache, so the loop is
-// timer-bound rather than network-bound — raising FPS and/or the step both
-// directly cut how long the intro takes.
-//   INTRO_FPS: higher = each frame shown for less time.
-//   INTRO_FRAME_STEP: 1 = show every frame, 2 = every other frame (roughly
-//     halves total intro time for the same FPS), 3 = every third, etc.
-const INTRO_FPS = 120;
+// Intro playback config.
+//   INTRO_FPS: target frames per second for the intro sequence.
+//   INTRO_FRAME_STEP: 1 = every frame, 2 = every other, etc.
+//   INTRO_PREBUFFER: how many frames to fetch before starting playback.
+//     On a live server network round-trips dominate, so we buffer ahead
+//     to avoid per-frame stalls. Preloader.tsx should already have frames
+//     0..INITIAL_FRAMES in the HTTP cache; this is a safety margin.
+const INTRO_FPS = 60;
 const INTRO_FRAME_STEP = 1;
+const INTRO_PREBUFFER = 30;
 
 // Keys that would otherwise scroll the page (Space, arrows, Page Up/Down,
 // Home, End) — blocked while the intro is playing so keyboard users can't
@@ -83,6 +84,10 @@ export default function AdvancedDentistry() {
     const context = canvas.getContext('2d', { alpha: false });
     if (!context) return;
 
+    // Set once here — no need to re-apply on every drawFrame call.
+    context.imageSmoothingEnabled = true;
+    context.imageSmoothingQuality = 'high';
+
     let destroyed = false;
     let scrollDirection = 1;
     let lastProgress = 0;
@@ -137,8 +142,6 @@ export default function AdvancedDentistry() {
       const x = (width - drawWidth) / 2;
       const y = (height - drawHeight) / 2;
 
-      context.imageSmoothingEnabled = true;
-      context.imageSmoothingQuality = 'high';
       context.clearRect(0, 0, width, height);
       context.drawImage(image, x, y, drawWidth, drawHeight);
     };
@@ -216,42 +219,21 @@ export default function AdvancedDentistry() {
     };
 
     // ─── Intro: play frames 0–(INITIAL_FRAMES-1) like a smooth video ─────────
-    const INTRO_MS = 1000 / INTRO_FPS;
-    let introTimerId: ReturnType<typeof setTimeout> | null = null;
+    // Uses rAF instead of setTimeout chains so the cadence is driven by the
+    // display refresh and not by accumulated setTimeout drift. Frames are
+    // played the moment they are cached — we only stall if the very next
+    // frame hasn't arrived yet (network-bounded on live servers).
+    const INTRO_INTERVAL = 1000 / INTRO_FPS;
 
-    const runIntro = async () => {
-      resizeCanvas();
-      lockScroll();
-
-      for (let i = 0; i < INITIAL_FRAMES; i += INTRO_FRAME_STEP) {
-        if (destroyed || !isIntroPlaying) break;
-
-        await loadFrame(i, cache, pending).catch(() => undefined);
-        if (destroyed || !isIntroPlaying) break;
-
-        currentFrameRef.current = i;
-        targetFrame = i;
-        displayFrame = i;
-        drawFrame(i);
-
-        await new Promise<void>((resolve) => {
-          introTimerId = setTimeout(resolve, INTRO_MS);
-        });
-      }
-
+    const finishIntro = () => {
       if (destroyed) return;
-
       const lastIntroFrame = Math.min(INITIAL_FRAMES - 1, TOTAL_FRAMES - 1);
-      if (isIntroPlaying) {
-        targetFrame = lastIntroFrame;
-        displayFrame = lastIntroFrame;
-        currentFrameRef.current = lastIntroFrame;
-        isIntroPlaying = false;
-      }
+      targetFrame = lastIntroFrame;
+      displayFrame = lastIntroFrame;
+      currentFrameRef.current = lastIntroFrame;
+      isIntroPlaying = false;
 
-      // Intro is done (or already ended) — hand control back to the user.
       unlockScroll();
-
       animationFrameId = window.requestAnimationFrame(renderFrameLoop);
 
       // Quietly prefetch remaining frames during idle time
@@ -275,6 +257,69 @@ export default function AdvancedDentistry() {
       };
 
       prefetchRemaining(INITIAL_FRAMES);
+    };
+
+    const runIntro = async () => {
+      resizeCanvas();
+      lockScroll();
+
+      // Pre-buffer the first INTRO_PREBUFFER frames before we start ticking so
+      // the opening seconds don't stall on slow connections.
+      const prebufferEnd = Math.min(INTRO_PREBUFFER, INITIAL_FRAMES);
+      const prebufferLoads: Promise<FrameImage | void>[] = [];
+      for (let i = 0; i < prebufferEnd; i++) {
+        prebufferLoads.push(loadFrame(i, cache, pending).catch(() => undefined));
+      }
+      await Promise.all(prebufferLoads);
+
+      if (destroyed || !isIntroPlaying) return;
+
+      // Kick off background fetching of the rest of the intro frames in
+      // parallel — they'll land in cache while we're playing earlier ones.
+      for (let i = prebufferEnd; i < INITIAL_FRAMES; i++) {
+        void loadFrame(i, cache, pending).catch(() => undefined);
+      }
+
+      // rAF ticker: advances one INTRO_FRAME_STEP every INTRO_INTERVAL ms.
+      let introFrame = 0;
+      let lastTickTime = -1;
+
+      const introTick = (now: DOMHighResTimeStamp) => {
+        if (destroyed || !isIntroPlaying) return;
+
+        if (lastTickTime < 0) lastTickTime = now;
+        const elapsed = now - lastTickTime;
+
+        if (elapsed >= INTRO_INTERVAL) {
+          lastTickTime = now - (elapsed % INTRO_INTERVAL);
+
+          // Only advance if the target frame is already cached — otherwise
+          // hold the current frame until it arrives (prevents blank flashes).
+          const nextFrame = introFrame + INTRO_FRAME_STEP;
+          if (nextFrame < INITIAL_FRAMES && !cache.has(nextFrame)) {
+            // Frame not ready yet — keep ticking without advancing
+            animationFrameId = window.requestAnimationFrame(introTick);
+            return;
+          }
+
+          introFrame = Math.min(nextFrame, INITIAL_FRAMES - 1);
+          currentFrameRef.current = introFrame;
+          targetFrame = introFrame;
+          displayFrame = introFrame;
+          drawFrame(introFrame);
+
+          if (introFrame >= INITIAL_FRAMES - 1) {
+            finishIntro();
+            return;
+          }
+        }
+
+        animationFrameId = window.requestAnimationFrame(introTick);
+      };
+
+      // Draw first cached frame immediately, then start ticker
+      drawFrame(0);
+      animationFrameId = window.requestAnimationFrame(introTick);
     };
 
     const textLayers = Array.from(section.querySelectorAll<HTMLElement>('[data-copy]'));
@@ -355,7 +400,6 @@ export default function AdvancedDentistry() {
 
     return () => {
       destroyed = true;
-      if (introTimerId !== null) clearTimeout(introTimerId);
       if (preloaderReadyListener) {
         window.removeEventListener('preloader:ready', preloaderReadyListener);
       }
