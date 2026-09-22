@@ -141,7 +141,7 @@ export default function AdvancedDentistry() {
       if (destroyed) return;
 
       if (!isIntroPlaying) {
-        displayFrame += (targetFrame - displayFrame) * 0.22;
+        displayFrame += (targetFrame - displayFrame) * 0.42;
 
         const idealFrame = Math.round(displayFrame);
         const bestFrame = getNearestCachedFrame(idealFrame);
@@ -160,7 +160,7 @@ export default function AdvancedDentistry() {
     };
 
     // ─── Intro: play frames 0–(INITIAL_FRAMES-1) like a smooth video ─────────
-    const INTRO_FPS = 30;
+    const INTRO_FPS = 52;
     const INTRO_MS = 1000 / INTRO_FPS;
     let introTimerId: ReturnType<typeof setTimeout> | null = null;
 

@@ -167,13 +167,13 @@ export default function Preloader() {
     };
 
     const hide = () => {
-      const remaining = Math.max(0, 850 - (performance.now() - startedAt));
+      const remaining = Math.max(0, 320 - (performance.now() - startedAt));
       window.setTimeout(() => {
         setIsLeaving(true);
         // Signal AdvancedDentistry to begin the intro frame animation.
         window.__preloaderReady = true;
         window.dispatchEvent(new CustomEvent('preloader:ready'));
-        removeTimer = window.setTimeout(() => setIsVisible(false), 650);
+        removeTimer = window.setTimeout(() => setIsVisible(false), 420);
       }, remaining);
     };
 
