@@ -18,7 +18,7 @@ const PREFETCH_AHEAD = 60;
 //   INTRO_FPS: higher = each frame shown for less time.
 //   INTRO_FRAME_STEP: 1 = show every frame, 2 = every other frame (roughly
 //     halves total intro time for the same FPS), 3 = every third, etc.
-const INTRO_FPS = 30;
+const INTRO_FPS = 90;
 const INTRO_FRAME_STEP = 1;
 
 // Keys that would otherwise scroll the page (Space, arrows, Page Up/Down,
