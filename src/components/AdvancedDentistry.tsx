@@ -11,6 +11,30 @@ const INITIAL_FRAMES = 150;
 const CACHE_RADIUS = 120;
 const PREFETCH_AHEAD = 60;
 
+// Intro playback speed. By the time the intro starts, Preloader.tsx has
+// already loaded these frames into the browser's HTTP cache, so the loop is
+// timer-bound rather than network-bound — raising FPS and/or the step both
+// directly cut how long the intro takes.
+//   INTRO_FPS: higher = each frame shown for less time.
+//   INTRO_FRAME_STEP: 1 = show every frame, 2 = every other frame (roughly
+//     halves total intro time for the same FPS), 3 = every third, etc.
+const INTRO_FPS = 30;
+const INTRO_FRAME_STEP = 1;
+
+// Keys that would otherwise scroll the page (Space, arrows, Page Up/Down,
+// Home, End) — blocked while the intro is playing so keyboard users can't
+// skip past it either.
+const SCROLL_KEYS = new Set([
+  ' ',
+  'Spacebar',
+  'ArrowUp',
+  'ArrowDown',
+  'PageUp',
+  'PageDown',
+  'Home',
+  'End',
+]);
+
 type FrameImage = HTMLImageElement;
 
 function framePath(index: number) {
@@ -68,6 +92,38 @@ export default function AdvancedDentistry() {
     let isIntroPlaying = true;
     const cache = cacheRef.current;
     const pending = new Map<number, Promise<FrameImage>>();
+
+    // ─── Scroll lock while the intro plays ───────────────────────────────────
+    // We lock the page (rather than just cancelling the intro on interaction)
+    // so the user can't scroll, wheel, touch, or key their way past it.
+    let scrollLocked = false;
+    let lockedScrollY = 0;
+    const previousBodyOverflow = document.body.style.overflow;
+    const previousBodyPosition = document.body.style.position;
+    const previousBodyTop = document.body.style.top;
+    const previousBodyWidth = document.body.style.width;
+
+    const lockScroll = () => {
+      if (scrollLocked) return;
+      scrollLocked = true;
+      lockedScrollY = window.scrollY;
+      // Fixed-position lock (not just overflow:hidden) so it also holds on
+      // iOS Safari, which otherwise still allows rubber-band scrolling.
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${lockedScrollY}px`;
+      document.body.style.width = '100%';
+      document.body.style.overflow = 'hidden';
+    };
+
+    const unlockScroll = () => {
+      if (!scrollLocked) return;
+      scrollLocked = false;
+      document.body.style.position = previousBodyPosition;
+      document.body.style.top = previousBodyTop;
+      document.body.style.width = previousBodyWidth;
+      document.body.style.overflow = previousBodyOverflow;
+      window.scrollTo(0, lockedScrollY);
+    };
 
     const drawFrame = (index: number) => {
       const image = cache.get(index);
@@ -160,14 +216,14 @@ export default function AdvancedDentistry() {
     };
 
     // ─── Intro: play frames 0–(INITIAL_FRAMES-1) like a smooth video ─────────
-    const INTRO_FPS = 52;
     const INTRO_MS = 1000 / INTRO_FPS;
     let introTimerId: ReturnType<typeof setTimeout> | null = null;
 
     const runIntro = async () => {
       resizeCanvas();
+      lockScroll();
 
-      for (let i = 0; i < INITIAL_FRAMES; i++) {
+      for (let i = 0; i < INITIAL_FRAMES; i += INTRO_FRAME_STEP) {
         if (destroyed || !isIntroPlaying) break;
 
         await loadFrame(i, cache, pending).catch(() => undefined);
@@ -192,6 +248,9 @@ export default function AdvancedDentistry() {
         currentFrameRef.current = lastIntroFrame;
         isIntroPlaying = false;
       }
+
+      // Intro is done (or already ended) — hand control back to the user.
+      unlockScroll();
 
       animationFrameId = window.requestAnimationFrame(renderFrameLoop);
 
@@ -227,6 +286,10 @@ export default function AdvancedDentistry() {
       scrub: true,
       pin: '[data-pinned-stage]',
       onUpdate: (self) => {
+        // While the intro is playing (and scroll is locked) the page can't
+        // actually move, so there's nothing meaningful to scrub here yet.
+        if (isIntroPlaying) return;
+
         const trackBounds = track.getBoundingClientRect();
         const scrollableDistance = track.offsetHeight - window.innerHeight;
         const progress = scrollableDistance > 0
@@ -243,18 +306,10 @@ export default function AdvancedDentistry() {
           gsap.to(layer, { autoAlpha: visible ? 1 : 0, duration: 0.6, ease: 'power2.out', overwrite: true });
         });
 
-        // Hand off control to scroll if user scrolls while intro is active
-        if (isIntroPlaying && progress > 0.005) {
-          isIntroPlaying = false;
-          if (introTimerId !== null) clearTimeout(introTimerId);
-        }
-
-        if (!isIntroPlaying) {
-          const frameIndex = INITIAL_FRAMES + progress * (TOTAL_FRAMES - 1 - INITIAL_FRAMES);
-          const safeFrame = Math.min(TOTAL_FRAMES - 1, Math.max(0, frameIndex));
-          targetFrame = safeFrame;
-          maintainCache(Math.round(safeFrame));
-        }
+        const frameIndex = INITIAL_FRAMES + progress * (TOTAL_FRAMES - 1 - INITIAL_FRAMES);
+        const safeFrame = Math.min(TOTAL_FRAMES - 1, Math.max(0, frameIndex));
+        targetFrame = safeFrame;
+        maintainCache(Math.round(safeFrame));
       },
     });
     scrollTrigger.update();
@@ -274,18 +329,29 @@ export default function AdvancedDentistry() {
       }
     };
 
-    const handleUserInteraction = () => {
-      if (isIntroPlaying) {
-        isIntroPlaying = false;
-        if (introTimerId !== null) clearTimeout(introTimerId);
+    // While the intro is playing, these block the interaction outright
+    // (preventDefault) instead of cancelling the intro. Once isIntroPlaying
+    // is false, they're no-ops and native scrolling behaves normally.
+    const blockWheel = (event: WheelEvent) => {
+      if (isIntroPlaying) event.preventDefault();
+    };
+
+    const blockTouchMove = (event: TouchEvent) => {
+      if (isIntroPlaying) event.preventDefault();
+    };
+
+    const blockScrollKeys = (event: KeyboardEvent) => {
+      if (isIntroPlaying && SCROLL_KEYS.has(event.key)) {
+        event.preventDefault();
       }
     };
 
     startWhenReady();
     window.addEventListener('resize', resizeCanvas);
-    window.addEventListener('wheel', handleUserInteraction, { passive: true });
-    window.addEventListener('touchmove', handleUserInteraction, { passive: true });
-    window.addEventListener('keydown', handleUserInteraction);
+    // passive: false is required so preventDefault() actually blocks the scroll.
+    window.addEventListener('wheel', blockWheel, { passive: false });
+    window.addEventListener('touchmove', blockTouchMove, { passive: false });
+    window.addEventListener('keydown', blockScrollKeys);
 
     return () => {
       destroyed = true;
@@ -295,9 +361,10 @@ export default function AdvancedDentistry() {
       }
       window.cancelAnimationFrame(animationFrameId);
       window.removeEventListener('resize', resizeCanvas);
-      window.removeEventListener('wheel', handleUserInteraction);
-      window.removeEventListener('touchmove', handleUserInteraction);
-      window.removeEventListener('keydown', handleUserInteraction);
+      window.removeEventListener('wheel', blockWheel);
+      window.removeEventListener('touchmove', blockTouchMove);
+      window.removeEventListener('keydown', blockScrollKeys);
+      unlockScroll();
       scrollTrigger.kill();
       cache.clear();
       pending.clear();

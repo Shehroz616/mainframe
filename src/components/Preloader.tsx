@@ -7,6 +7,19 @@ declare const __TOTAL_FRAMES__: number;
 const TOTAL_FRAMES = __TOTAL_FRAMES__;
 const VIDEO_SRC = '/hero-video-2.mp4';
 
+// Only these frames need to be ready before we hand off to AdvancedDentistry's
+// intro animation — it plays frames 0..INITIAL_FRAMES-1 itself and prefetches
+// the rest in the background afterward. Keep this in sync with the
+// INITIAL_FRAMES constant in AdvancedDentistry.tsx.
+const INITIAL_FRAMES = Math.min(150, TOTAL_FRAMES);
+
+// How many frame requests are allowed to be in flight at once. Loading frames
+// one-at-a-time (await in a for-loop) turns every frame into a serial
+// round-trip, which is fine on localhost but brutal on a live server where
+// each request has real latency. A small worker pool loads several frames in
+// parallel without saturating the connection.
+const FRAME_LOAD_CONCURRENCY = 8;
+
 function ToothSpinner() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
@@ -119,24 +132,25 @@ function loadFrame(index: number) {
   });
 }
 
-// async function loadAllFrames() {
-//   let nextIndex = 0;
+// Loads `count` frames (starting at index 0) using a small worker pool so
+// several requests are in flight at once, instead of one strict sequential
+// chain. `onFrameDone` fires after each individual frame settles, in
+// whatever order they actually complete, so progress reporting stays smooth.
+async function loadFramesConcurrently(count: number, onFrameDone: () => void) {
+  let nextIndex = 0;
 
-//   const loadWorker = async () => {
-//     while (nextIndex < TOTAL_FRAMES) {
-//       const index = nextIndex;
-//       nextIndex += 1;
-//       await loadFrame(index);
-//     }
-//   };
+  const worker = async () => {
+    while (nextIndex < count) {
+      const index = nextIndex;
+      nextIndex += 1;
+      await loadFrame(index);
+      onFrameDone();
+    }
+  };
 
-//   await Promise.all(
-//     Array.from(
-//       { length: Math.min(FRAME_LOAD_CONCURRENCY, TOTAL_FRAMES) },
-//       () => loadWorker(),
-//     ),
-//   );
-// }
+  const workerCount = Math.min(FRAME_LOAD_CONCURRENCY, count);
+  await Promise.all(Array.from({ length: workerCount }, () => worker()));
+}
 
 function loadHeroVideo() {
   return new Promise<void>((resolve) => {
@@ -178,30 +192,30 @@ export default function Preloader() {
     };
 
     const loadTasks = async () => {
+      // We only gate the preloader on the frames AdvancedDentistry needs to
+      // start its intro (INITIAL_FRAMES), plus the hero video. The remaining
+      // frames are prefetched by AdvancedDentistry itself once the intro
+      // starts, in the background, so we don't make the user wait for them.
       let framesLoaded = 0;
+      const total = INITIAL_FRAMES + 1;
 
       const trackFrameProgress = async () => {
-        const total = TOTAL_FRAMES + 1;
-        const tick = () => {
+        await loadFramesConcurrently(INITIAL_FRAMES, () => {
           framesLoaded += 1;
           updateProgress(framesLoaded, total);
-        };
-
-        for (let index = 0; index < TOTAL_FRAMES; index += 1) {
-          await loadFrame(index);
-          tick();
-        }
+        });
       };
 
       await Promise.all([
         (async () => {
           await loadHeroVideo();
-          updateProgress(1, TOTAL_FRAMES + 1);
+          framesLoaded += 1;
+          updateProgress(framesLoaded, total);
         })(),
         trackFrameProgress(),
       ]);
 
-      updateProgress(TOTAL_FRAMES + 1, TOTAL_FRAMES + 1);
+      updateProgress(total, total);
       hide();
     };
 
