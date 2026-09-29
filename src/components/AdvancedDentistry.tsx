@@ -39,7 +39,7 @@ const SCROLL_KEYS = new Set([
 type FrameImage = HTMLImageElement;
 
 function framePath(index: number) {
-  return `/frames/ezgif-frame-${String(index + 1).padStart(3, '0')}.png`;
+  return `/frames/ezgif-frame-${String(index + 1).padStart(3, '0')}.webp`;
 }
 
 function loadFrame(
