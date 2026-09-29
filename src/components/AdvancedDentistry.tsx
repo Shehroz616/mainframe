@@ -1,417 +1,274 @@
 import { useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import {
+  TOTAL_FRAMES, INTRO_FRAMES, getFrame, hasFrame, isFailed,
+  loadFrame, requestFrames, evictOutside, clearFrames, warmFrames,
+} from './frameStore';
 
 gsap.registerPlugin(ScrollTrigger);
 
-declare const __TOTAL_FRAMES__: number;
-
-const TOTAL_FRAMES = __TOTAL_FRAMES__;
-const INITIAL_FRAMES = 120;
-const CACHE_RADIUS = 120;
-const PREFETCH_AHEAD = 60;
-
-// Intro playback config.
-//   INTRO_FPS: target frames per second for the intro sequence.
-//   INTRO_FRAME_STEP: 1 = every frame, 2 = every other, etc.
-//   INTRO_PREBUFFER: how many frames to fetch before starting playback.
-//     On a live server network round-trips dominate, so we buffer ahead
-//     to avoid per-frame stalls. Preloader.tsx should already have frames
-//     0..INITIAL_FRAMES in the HTTP cache; this is a safety margin.
+const LAST_INTRO = INTRO_FRAMES - 1;
 const INTRO_FPS = 60;
-const INTRO_FRAME_STEP = 1;
-const INTRO_PREBUFFER = 60;
+const INTRO_PREBUFFER = 40;
+const INTRO_STALL_LIMIT = 4000;
+const AHEAD = 48;   // decoded frames kept in scroll direction
+const BEHIND = 12;  // decoded frames kept behind
 
-// Keys that would otherwise scroll the page (Space, arrows, Page Up/Down,
-// Home, End) — blocked while the intro is playing so keyboard users can't
-// skip past it either.
-const SCROLL_KEYS = new Set([
-  ' ',
-  'Spacebar',
-  'ArrowUp',
-  'ArrowDown',
-  'PageUp',
-  'PageDown',
-  'Home',
-  'End',
-]);
-
-type FrameImage = HTMLImageElement;
-
-function framePath(index: number) {
-  return `/frames/ezgif-frame-${String(index + 1).padStart(3, '0')}.webp`;
-}
-
-function loadFrame(
-  index: number,
-  cache: Map<number, FrameImage>,
-  pending: Map<number, Promise<FrameImage>>,
-) {
-  const cached = cache.get(index);
-  if (cached) return Promise.resolve(cached);
-  const existingRequest = pending.get(index);
-  if (existingRequest) return existingRequest;
-
-  const image = new Image();
-  image.decoding = 'async';
-  image.src = framePath(index);
-  const request = (image.decode?.() ?? Promise.resolve()).then(() => {
-    cache.set(index, image);
-    pending.delete(index);
-    return image;
-  }).catch((error: unknown) => {
-    pending.delete(index);
-    throw error;
-  });
-
-  pending.set(index, request);
-  return request;
-}
+const SCROLL_KEYS = new Set([' ', 'Spacebar', 'ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End']);
+const sleep = (ms: number) => new Promise<void>((r) => window.setTimeout(r, ms));
 
 export default function AdvancedDentistry() {
   const sectionRef = useRef<HTMLElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const cacheRef = useRef<Map<number, FrameImage>>(new Map());
-  const currentFrameRef = useRef(0);
+  const currentFrameRef = useRef(-1);
 
   useEffect(() => {
     const section = sectionRef.current;
     const track = trackRef.current;
     const canvas = canvasRef.current;
     if (!section || !track || !canvas) return;
-
     const context = canvas.getContext('2d', { alpha: false });
     if (!context) return;
 
-    // Set once here — no need to re-apply on every drawFrame call.
-    context.imageSmoothingEnabled = true;
-    context.imageSmoothingQuality = 'high';
-
     let destroyed = false;
-    let scrollDirection = 1;
+    let isIntroPlaying = true;
+    let dir: 1 | -1 = 1;
     let lastProgress = 0;
     let targetFrame = 0;
     let displayFrame = 0;
-    let animationFrameId = 0;
-    let isIntroPlaying = true;
-    const cache = cacheRef.current;
-    const pending = new Map<number, Promise<FrameImage>>();
+    let introRaf = 0;
+    let loopRaf = 0;
+    let looping = false;
 
-    // ─── Scroll lock while the intro plays ───────────────────────────────────
-    // We lock the page (rather than just cancelling the intro on interaction)
-    // so the user can't scroll, wheel, touch, or key their way past it.
-    let scrollLocked = false;
-    let lockedScrollY = 0;
-    const previousBodyOverflow = document.body.style.overflow;
-    const previousBodyPosition = document.body.style.position;
-    const previousBodyTop = document.body.style.top;
-    const previousBodyWidth = document.body.style.width;
-
+    // ─── Scroll lock (overflow based, keeps layout/scroll height intact) ───
+    const root = document.documentElement;
+    const prevRoot = root.style.overflow;
+    const prevBody = document.body.style.overflow;
     const lockScroll = () => {
-      if (scrollLocked) return;
-      scrollLocked = true;
-      lockedScrollY = window.scrollY;
-      // Fixed-position lock (not just overflow:hidden) so it also holds on
-      // iOS Safari, which otherwise still allows rubber-band scrolling.
-      document.body.style.position = 'fixed';
-      document.body.style.top = `-${lockedScrollY}px`;
-      document.body.style.width = '100%';
+      root.style.overflow = 'hidden';
       document.body.style.overflow = 'hidden';
     };
-
     const unlockScroll = () => {
-      if (!scrollLocked) return;
-      scrollLocked = false;
-      document.body.style.position = previousBodyPosition;
-      document.body.style.top = previousBodyTop;
-      document.body.style.width = previousBodyWidth;
-      document.body.style.overflow = previousBodyOverflow;
-      window.scrollTo(0, lockedScrollY);
+      root.style.overflow = prevRoot;
+      document.body.style.overflow = prevBody;
     };
 
+    // ─── Drawing ───
     const drawFrame = (index: number) => {
-      const image = cache.get(index);
+      const image = getFrame(index);
       if (!image || destroyed) return;
-
-      const width = window.innerWidth;
-      const height = window.innerHeight;
-      const scale = Math.max(width / image.naturalWidth, height / image.naturalHeight);
-      const drawWidth = image.naturalWidth * scale;
-      const drawHeight = image.naturalHeight * scale;
-      const x = (width - drawWidth) / 2;
-      const y = (height - drawHeight) / 2;
-
-      context.clearRect(0, 0, width, height);
-      context.drawImage(image, x, y, drawWidth, drawHeight);
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      const scale = Math.max(w / image.naturalWidth, h / image.naturalHeight);
+      const dw = image.naturalWidth * scale;
+      const dh = image.naturalHeight * scale;
+      context.clearRect(0, 0, w, h);
+      context.drawImage(image, (w - dw) / 2, (h - dh) / 2, dw, dh);
     };
 
-    // Requests a frame into memory cache (never draws directly to avoid race conditions)
-    const requestFrame = (index: number) => {
-      if (index < 0 || index >= TOTAL_FRAMES) return;
-      void loadFrame(index, cache, pending).catch(() => undefined);
+    const resizeCanvas = () => {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width = Math.round(window.innerWidth * dpr);
+      canvas.height = Math.round(window.innerHeight * dpr);
+      canvas.style.width = `${window.innerWidth}px`;
+      canvas.style.height = `${window.innerHeight}px`;
+      // Setting canvas.width resets context state, so re-apply everything here.
+      context.setTransform(dpr, 0, 0, dpr, 0, 0);
+      context.imageSmoothingEnabled = true;
+      context.imageSmoothingQuality = 'high';
+      drawFrame(currentFrameRef.current);
     };
 
-    const maintainCache = (currentIndex: number) => {
-      const start = Math.max(0, currentIndex - CACHE_RADIUS);
-      const end = Math.min(TOTAL_FRAMES - 1, currentIndex + CACHE_RADIUS);
-
-      for (let index = start; index <= end; index += 1) requestFrame(index);
-      for (const index of cache.keys()) {
-        if (index < start || index > end) cache.delete(index);
+    // ─── Frame window: nearest first, in scroll direction ───
+    const planWindow = (center: number) => {
+      const c = Math.round(center);
+      const list: number[] = [];
+      for (let d = 0; d <= AHEAD; d++) {
+        const a = c + dir * d;
+        if (a >= 0 && a < TOTAL_FRAMES) list.push(a);
+        if (d > 0 && d <= BEHIND) {
+          const b = c - dir * d;
+          if (b >= 0 && b < TOTAL_FRAMES) list.push(b);
+        }
       }
-
-      const prefetchStart = scrollDirection > 0 ? currentIndex + 1 : currentIndex - PREFETCH_AHEAD;
-      const prefetchEnd = scrollDirection > 0 ? currentIndex + PREFETCH_AHEAD : currentIndex - 1;
-      for (
-        let index = prefetchStart;
-        scrollDirection > 0 ? index <= prefetchEnd : index >= prefetchEnd;
-        index += scrollDirection
-      ) {
-        if (index >= 0 && index < TOTAL_FRAMES) requestFrame(index);
-      }
+      requestFrames(list);
+      const a = c + dir * (AHEAD + 8);
+      const b = c - dir * (BEHIND + 8);
+      evictOutside(Math.min(a, b), Math.max(a, b));
     };
 
-    // Finds closest loaded frame to target to prevent frame jumps or blank canvases
-    const getNearestCachedFrame = (idealIndex: number): number | null => {
-      if (cache.has(idealIndex)) return idealIndex;
-      const maxSearch = 20;
-      for (let offset = 1; offset <= maxSearch; offset += 1) {
-        const primary = idealIndex - scrollDirection * offset;
-        if (primary >= 0 && primary < TOTAL_FRAMES && cache.has(primary)) return primary;
-        const secondary = idealIndex + scrollDirection * offset;
-        if (secondary >= 0 && secondary < TOTAL_FRAMES && cache.has(secondary)) return secondary;
+    const nearestCached = (ideal: number): number | null => {
+      if (hasFrame(ideal)) return ideal;
+      for (let o = 1; o <= 20; o++) {
+        const p = ideal - dir * o;
+        if (p >= 0 && p < TOTAL_FRAMES && hasFrame(p)) return p;
+        const s = ideal + dir * o;
+        if (s >= 0 && s < TOTAL_FRAMES && hasFrame(s)) return s;
       }
       return null;
     };
 
-    const resizeCanvas = () => {
-      const pixelRatio = window.devicePixelRatio || 1;
-      canvas.width = Math.round(window.innerWidth * pixelRatio);
-      canvas.height = Math.round(window.innerHeight * pixelRatio);
-      canvas.style.width = `${window.innerWidth}px`;
-      canvas.style.height = `${window.innerHeight}px`;
-      context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
-      drawFrame(currentFrameRef.current);
-    };
-
-    // ─── Scroll-driven render loop ───────────────────────────────────────────
-    const renderFrameLoop = () => {
+    // ─── Scroll render loop (stops itself when settled) ───
+    const loop = () => {
       if (destroyed) return;
+      displayFrame += (targetFrame - displayFrame) * 0.35;
+      if (Math.abs(targetFrame - displayFrame) < 0.05) displayFrame = targetFrame;
 
-      if (!isIntroPlaying) {
-        displayFrame += (targetFrame - displayFrame) * 0.42;
-
-        const idealFrame = Math.round(displayFrame);
-        const bestFrame = getNearestCachedFrame(idealFrame);
-
-        if (bestFrame !== null && bestFrame !== currentFrameRef.current) {
-          currentFrameRef.current = bestFrame;
-          drawFrame(bestFrame);
-        }
-
-        if (!cache.has(idealFrame)) {
-          requestFrame(idealFrame);
-        }
+      const ideal = Math.round(displayFrame);
+      const best = nearestCached(ideal);
+      if (best !== null && best !== currentFrameRef.current) {
+        currentFrameRef.current = best;
+        drawFrame(best);
       }
 
-      animationFrameId = window.requestAnimationFrame(renderFrameLoop);
+      if (displayFrame === targetFrame && best === ideal) {
+        looping = false;
+        return;
+      }
+      loopRaf = window.requestAnimationFrame(loop);
+    };
+    const kick = () => {
+      if (looping || isIntroPlaying || destroyed) return;
+      looping = true;
+      loopRaf = window.requestAnimationFrame(loop);
     };
 
-    // ─── Intro: play frames 0–(INITIAL_FRAMES-1) like a smooth video ─────────
-    // Uses rAF instead of setTimeout chains so the cadence is driven by the
-    // display refresh and not by accumulated setTimeout drift. Frames are
-    // played the moment they are cached — we only stall if the very next
-    // frame hasn't arrived yet (network-bounded on live servers).
+    // ─── Intro ───
     const INTRO_INTERVAL = 1000 / INTRO_FPS;
 
     const finishIntro = () => {
-      if (destroyed) return;
-      const lastIntroFrame = Math.min(INITIAL_FRAMES - 1, TOTAL_FRAMES - 1);
-      targetFrame = lastIntroFrame;
-      displayFrame = lastIntroFrame;
-      currentFrameRef.current = lastIntroFrame;
+      if (destroyed || !isIntroPlaying) return;
+      window.cancelAnimationFrame(introRaf);
       isIntroPlaying = false;
-
+      targetFrame = LAST_INTRO;
+      displayFrame = LAST_INTRO;
+      currentFrameRef.current = -1; // force redraw of the last intro frame
+      dir = 1;
       unlockScroll();
-      animationFrameId = window.requestAnimationFrame(renderFrameLoop);
+      ScrollTrigger.refresh();
+      planWindow(LAST_INTRO);
+      kick();
 
-      // Quietly prefetch remaining frames during idle time
-      const prefetchRemaining = (startIndex: number) => {
-        if (destroyed || startIndex >= TOTAL_FRAMES) return;
-
-        const schedule =
-          typeof window.requestIdleCallback === 'function'
-            ? (cb: () => void) => window.requestIdleCallback(cb, { timeout: 2000 })
-            : (cb: () => void) => window.requestAnimationFrame(cb);
-
-        schedule(() => {
-          const batchSize = 20;
-          const end = Math.min(startIndex + batchSize, TOTAL_FRAMES);
-          const loads: Promise<FrameImage | void>[] = [];
-          for (let i = startIndex; i < end; i++) {
-            if (!cache.has(i)) loads.push(loadFrame(i, cache, pending).catch(() => undefined));
-          }
-          void Promise.all(loads).then(() => prefetchRemaining(end));
-        });
-      };
-
-      prefetchRemaining(INITIAL_FRAMES);
+      // Warm HTTP cache (bytes only) for the rest, low priority, 2 at a time.
+      const rest = Array.from({ length: TOTAL_FRAMES - INTRO_FRAMES }, (_, i) => INTRO_FRAMES + i);
+      void warmFrames(rest, 2, () => destroyed);
     };
 
     const runIntro = async () => {
+      window.scrollTo(0, 0);
       resizeCanvas();
       lockScroll();
 
-      // Pre-buffer the first INTRO_PREBUFFER frames before we start ticking so
-      // the opening seconds don't stall on slow connections.
-      const prebufferEnd = Math.min(INTRO_PREBUFFER, INITIAL_FRAMES);
-      const prebufferLoads: Promise<FrameImage | void>[] = [];
-      for (let i = 0; i < prebufferEnd; i++) {
-        prebufferLoads.push(loadFrame(i, cache, pending).catch(() => undefined));
-      }
-      await Promise.all(prebufferLoads);
-
+      const order = Array.from({ length: INTRO_FRAMES }, (_, i) => i);
+      const prebuffer = Math.min(INTRO_PREBUFFER, INTRO_FRAMES);
+      await Promise.race([Promise.all(order.slice(0, prebuffer).map(loadFrame)), sleep(5000)]);
       if (destroyed || !isIntroPlaying) return;
+      requestFrames(order.slice(prebuffer));
 
-      // Kick off background fetching of the rest of the intro frames in
-      // parallel — they'll land in cache while we're playing earlier ones.
-      for (let i = prebufferEnd; i < INITIAL_FRAMES; i++) {
-        void loadFrame(i, cache, pending).catch(() => undefined);
-      }
-
-      // rAF ticker: advances one INTRO_FRAME_STEP every INTRO_INTERVAL ms.
       let introFrame = 0;
-      let lastTickTime = -1;
+      let lastTick = -1;
+      let stallSince = -1;
 
-      const introTick = (now: DOMHighResTimeStamp) => {
+      const tick = (now: DOMHighResTimeStamp) => {
         if (destroyed || !isIntroPlaying) return;
-
-        if (lastTickTime < 0) lastTickTime = now;
-        const elapsed = now - lastTickTime;
+        if (lastTick < 0) lastTick = now;
+        const elapsed = now - lastTick;
 
         if (elapsed >= INTRO_INTERVAL) {
-          lastTickTime = now - (elapsed % INTRO_INTERVAL);
+          const next = introFrame + 1;
+          if (next > LAST_INTRO) return finishIntro();
 
-          // Only advance if the target frame is already cached — otherwise
-          // hold the current frame until it arrives (prevents blank flashes).
-          const nextFrame = introFrame + INTRO_FRAME_STEP;
-          if (nextFrame < INITIAL_FRAMES && !cache.has(nextFrame)) {
-            // Frame not ready yet — keep ticking without advancing
-            animationFrameId = window.requestAnimationFrame(introTick);
+          if (!hasFrame(next) && !isFailed(next)) {
+            if (stallSince < 0) stallSince = now;
+            if (now - stallSince > INTRO_STALL_LIMIT) return finishIntro();
+            introRaf = window.requestAnimationFrame(tick);
             return;
           }
+          stallSince = -1;
+          lastTick = now - (elapsed % INTRO_INTERVAL);
 
-          introFrame = Math.min(nextFrame, INITIAL_FRAMES - 1);
-          currentFrameRef.current = introFrame;
-          targetFrame = introFrame;
-          displayFrame = introFrame;
-          drawFrame(introFrame);
-
-          if (introFrame >= INITIAL_FRAMES - 1) {
-            finishIntro();
-            return;
+          introFrame = next;
+          if (hasFrame(next)) {
+            currentFrameRef.current = next;
+            drawFrame(next);
           }
+          targetFrame = displayFrame = introFrame;
+          evictOutside(introFrame - 2, TOTAL_FRAMES); // free frames already played
+
+          if (introFrame >= LAST_INTRO) return finishIntro();
         }
-
-        animationFrameId = window.requestAnimationFrame(introTick);
+        introRaf = window.requestAnimationFrame(tick);
       };
 
-      // Draw first cached frame immediately, then start ticker
       drawFrame(0);
-      animationFrameId = window.requestAnimationFrame(introTick);
+      introRaf = window.requestAnimationFrame(tick);
     };
 
+    // ─── ScrollTrigger ───
     const textLayers = Array.from(section.querySelectorAll<HTMLElement>('[data-copy]'));
+    const layerVisible = new Map<HTMLElement, boolean>();
 
     const scrollTrigger = ScrollTrigger.create({
       trigger: track,
       start: 'top top',
       end: 'bottom bottom',
-      scrub: true,
       pin: '[data-pinned-stage]',
+      pinSpacing: false, // track already provides the scroll distance
       onUpdate: (self) => {
-        // While the intro is playing (and scroll is locked) the page can't
-        // actually move, so there's nothing meaningful to scrub here yet.
         if (isIntroPlaying) return;
-
-        const trackBounds = track.getBoundingClientRect();
-        const scrollableDistance = track.offsetHeight - window.innerHeight;
-        const progress = scrollableDistance > 0
-          ? Math.min(1, Math.max(0, -trackBounds.top / scrollableDistance))
-          : self.progress;
-
-        scrollDirection = progress >= lastProgress ? 1 : -1;
+        const progress = self.progress;
+        if (progress !== lastProgress) dir = progress > lastProgress ? 1 : -1;
         lastProgress = progress;
 
         textLayers.forEach((layer) => {
           const from = Number(layer.dataset.from);
           const to = Number(layer.dataset.to);
           const visible = progress >= from && progress <= to;
+          if (layerVisible.get(layer) === visible) return;
+          layerVisible.set(layer, visible);
           gsap.to(layer, { autoAlpha: visible ? 1 : 0, duration: 0.6, ease: 'power2.out', overwrite: true });
         });
 
-        const frameIndex = INITIAL_FRAMES + progress * (TOTAL_FRAMES - 1 - INITIAL_FRAMES);
-        const safeFrame = Math.min(TOTAL_FRAMES - 1, Math.max(0, frameIndex));
-        targetFrame = safeFrame;
-        maintainCache(Math.round(safeFrame));
+        targetFrame = LAST_INTRO + progress * (TOTAL_FRAMES - 1 - LAST_INTRO);
+        planWindow(targetFrame);
+        kick();
       },
     });
-    scrollTrigger.update();
 
-    // Start the intro only when the preloader signals it has reached 100%
-    // and its exit animation has begun. This keeps the canvas dark while the
-    // loading screen is still visible.
-    let preloaderReadyListener: (() => void) | null = null;
+    // ─── Start when preloader is done ───
+    let preloaderListener: (() => void) | null = null;
+    if (window.__preloaderReady) {
+      void runIntro();
+    } else {
+      preloaderListener = () => void runIntro();
+      window.addEventListener('preloader:ready', preloaderListener, { once: true });
+    }
 
-    const startWhenReady = () => {
-      if (window.__preloaderReady) {
-        // Event already fired before we got here (race condition).
-        void runIntro();
-      } else {
-        preloaderReadyListener = () => { void runIntro(); };
-        window.addEventListener('preloader:ready', preloaderReadyListener, { once: true });
-      }
+    const blockWheel = (e: WheelEvent) => { if (isIntroPlaying) e.preventDefault(); };
+    const blockTouch = (e: TouchEvent) => { if (isIntroPlaying) e.preventDefault(); };
+    const blockKeys = (e: KeyboardEvent) => {
+      if (isIntroPlaying && SCROLL_KEYS.has(e.key)) e.preventDefault();
     };
 
-    // While the intro is playing, these block the interaction outright
-    // (preventDefault) instead of cancelling the intro. Once isIntroPlaying
-    // is false, they're no-ops and native scrolling behaves normally.
-    const blockWheel = (event: WheelEvent) => {
-      if (isIntroPlaying) event.preventDefault();
-    };
-
-    const blockTouchMove = (event: TouchEvent) => {
-      if (isIntroPlaying) event.preventDefault();
-    };
-
-    const blockScrollKeys = (event: KeyboardEvent) => {
-      if (isIntroPlaying && SCROLL_KEYS.has(event.key)) {
-        event.preventDefault();
-      }
-    };
-
-    startWhenReady();
     window.addEventListener('resize', resizeCanvas);
-    // passive: false is required so preventDefault() actually blocks the scroll.
     window.addEventListener('wheel', blockWheel, { passive: false });
-    window.addEventListener('touchmove', blockTouchMove, { passive: false });
-    window.addEventListener('keydown', blockScrollKeys);
+    window.addEventListener('touchmove', blockTouch, { passive: false });
+    window.addEventListener('keydown', blockKeys);
 
     return () => {
       destroyed = true;
-      if (preloaderReadyListener) {
-        window.removeEventListener('preloader:ready', preloaderReadyListener);
-      }
-      window.cancelAnimationFrame(animationFrameId);
+      if (preloaderListener) window.removeEventListener('preloader:ready', preloaderListener);
+      window.cancelAnimationFrame(introRaf);
+      window.cancelAnimationFrame(loopRaf);
       window.removeEventListener('resize', resizeCanvas);
       window.removeEventListener('wheel', blockWheel);
-      window.removeEventListener('touchmove', blockTouchMove);
-      window.removeEventListener('keydown', blockScrollKeys);
+      window.removeEventListener('touchmove', blockTouch);
+      window.removeEventListener('keydown', blockKeys);
       unlockScroll();
       scrollTrigger.kill();
-      cache.clear();
-      pending.clear();
+      clearFrames();
     };
   }, []);
 

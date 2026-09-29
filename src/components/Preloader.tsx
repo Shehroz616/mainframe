@@ -1,24 +1,16 @@
-import { useEffect, useRef, useState } from 'react';
-import * as THREE from 'three';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { useEffect, useRef, useState } from "react";
+import * as THREE from "three";
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
-declare const __TOTAL_FRAMES__: number;
+import { INTRO_FRAMES, warmFrames } from "./frameStore";
 
-const TOTAL_FRAMES = __TOTAL_FRAMES__;
-const VIDEO_SRC = '/hero-video-2.mp4';
+const VIDEO_SRC = "/hero-video-2.mp4";
+const VIDEO_TIMEOUT = 6000;
+const MAX_WAIT = 15000;
+const WARM_CONCURRENCY = 8;
+const sleep = (ms: number) =>
+new Promise<void>((r) => window.setTimeout(r, ms));
 
-// Only these frames need to be ready before we hand off to AdvancedDentistry's
-// intro animation — it plays frames 0..INITIAL_FRAMES-1 itself and prefetches
-// the rest in the background afterward. Keep this in sync with the
-// INITIAL_FRAMES constant in AdvancedDentistry.tsx.
-const INITIAL_FRAMES = Math.min(150, TOTAL_FRAMES);
-
-// How many frame requests are allowed to be in flight at once. Loading frames
-// one-at-a-time (await in a for-loop) turns every frame into a serial
-// round-trip, which is fine on localhost but brutal on a live server where
-// each request has real latency. A small worker pool loads several frames in
-// parallel without saturating the connection.
-const FRAME_LOAD_CONCURRENCY = 8;
 
 function ToothSpinner() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -34,7 +26,11 @@ function ToothSpinner() {
     const camera = new THREE.PerspectiveCamera(30, 1, 0.1, 100);
     camera.position.set(0, 0.12, 3.4);
 
-    const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+    const renderer = new THREE.WebGLRenderer({
+      canvas,
+      alpha: true,
+      antialias: true,
+    });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setSize(64, 64, false);
     renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -58,7 +54,7 @@ function ToothSpinner() {
 
     const loader = new GLTFLoader();
     loader.load(
-      '/molar_tooth.glb',
+      "/molar_tooth.glb",
       (gltf) => {
         if (destroyed) return;
         const model = gltf.scene;
@@ -66,7 +62,10 @@ function ToothSpinner() {
         model.traverse((child) => {
           if (child instanceof THREE.Mesh) {
             const mat = child.material;
-            if (mat instanceof THREE.MeshStandardMaterial || mat instanceof THREE.MeshPhysicalMaterial) {
+            if (
+              mat instanceof THREE.MeshStandardMaterial ||
+              mat instanceof THREE.MeshPhysicalMaterial
+            ) {
               mat.roughness = 0.25;
               mat.metalness = 0.05;
             }
@@ -87,8 +86,8 @@ function ToothSpinner() {
       },
       undefined,
       (err) => {
-        console.error('Error loading molar_tooth.glb in preloader:', err);
-      }
+        console.error("Error loading molar_tooth.glb in preloader:", err);
+      },
     );
 
     let prevTime = performance.now();
@@ -113,125 +112,95 @@ function ToothSpinner() {
     };
   }, []);
 
-  return <canvas ref={canvasRef} style={{ width: '100%', height: '100%', display: 'block' }} />;
-}
-
-function loadFrame(index: number) {
-  return new Promise<void>((resolve) => {
-    const image = new Image();
-    const finish = () => resolve();
-    image.onload = () => {
-      if (image.decode) {
-        void image.decode().catch(() => undefined).finally(finish);
-      } else {
-        finish();
-      }
-    };
-    image.onerror = finish;
-    image.src = `/frames/ezgif-frame-${String(index + 1).padStart(3, '0')}.png`;
-  });
-}
-
-// Loads `count` frames (starting at index 0) using a small worker pool so
-// several requests are in flight at once, instead of one strict sequential
-// chain. `onFrameDone` fires after each individual frame settles, in
-// whatever order they actually complete, so progress reporting stays smooth.
-async function loadFramesConcurrently(count: number, onFrameDone: () => void) {
-  let nextIndex = 0;
-
-  const worker = async () => {
-    while (nextIndex < count) {
-      const index = nextIndex;
-      nextIndex += 1;
-      await loadFrame(index);
-      onFrameDone();
-    }
-  };
-
-  const workerCount = Math.min(FRAME_LOAD_CONCURRENCY, count);
-  await Promise.all(Array.from({ length: workerCount }, () => worker()));
+  return (
+    <canvas
+      ref={canvasRef}
+      style={{ width: "100%", height: "100%", display: "block" }}
+    />
+  );
 }
 
 function loadHeroVideo() {
   return new Promise<void>((resolve) => {
-    const video = document.createElement('video');
+    const video = document.createElement("video");
     const finish = () => resolve();
-    video.preload = 'auto';
+    video.preload = "auto";
     video.muted = true;
     video.playsInline = true;
-    video.addEventListener('canplaythrough', finish, { once: true });
-    video.addEventListener('error', finish, { once: true });
+    // canplaythrough never fires on many mobile browsers; loadeddata does.
+    video.addEventListener("loadeddata", finish, { once: true });
+    video.addEventListener("error", finish, { once: true });
+    window.setTimeout(finish, VIDEO_TIMEOUT);
     video.src = VIDEO_SRC;
     video.load();
   });
 }
-
 export default function Preloader() {
   const [isVisible, setIsVisible] = useState(true);
   const [isLeaving, setIsLeaving] = useState(false);
   const [progress, setProgress] = useState(0);
 
+  // inside Preloader():
   useEffect(() => {
-    const startedAt = performance.now();
+    let cancelled = false;
+    let hideTimer: number | undefined;
     let removeTimer: number | undefined;
+    const startedAt = performance.now();
+    const total = INTRO_FRAMES + 1;
+    let loaded = 0;
 
-    const updateProgress = (loaded: number, total: number) => {
-      const nextProgress = Math.min(100, Math.max(0, (loaded / total) * 100));
-      setProgress(nextProgress);
+    const bump = () => {
+      loaded += 1;
+      setProgress(Math.min(100, (loaded / total) * 100));
     };
 
     const hide = () => {
+      if (cancelled) return;
       const remaining = Math.max(0, 320 - (performance.now() - startedAt));
-      window.setTimeout(() => {
+      hideTimer = window.setTimeout(() => {
+        if (cancelled) return;
         setIsLeaving(true);
-        // Signal AdvancedDentistry to begin the intro frame animation.
         window.__preloaderReady = true;
-        window.dispatchEvent(new CustomEvent('preloader:ready'));
+        window.dispatchEvent(new CustomEvent("preloader:ready"));
         removeTimer = window.setTimeout(() => setIsVisible(false), 420);
       }, remaining);
     };
 
-    const loadTasks = async () => {
-      // We only gate the preloader on the frames AdvancedDentistry needs to
-      // start its intro (INITIAL_FRAMES), plus the hero video. The remaining
-      // frames are prefetched by AdvancedDentistry itself once the intro
-      // starts, in the background, so we don't make the user wait for them.
-      let framesLoaded = 0;
-      const total = INITIAL_FRAMES + 1;
+    const frames = Array.from({ length: INTRO_FRAMES }, (_, i) => i);
 
-      const trackFrameProgress = async () => {
-        await loadFramesConcurrently(INITIAL_FRAMES, () => {
-          framesLoaded += 1;
-          updateProgress(framesLoaded, total);
-        });
-      };
-
-      await Promise.all([
-        (async () => {
-          await loadHeroVideo();
-          framesLoaded += 1;
-          updateProgress(framesLoaded, total);
-        })(),
-        trackFrameProgress(),
-      ]);
-
-      updateProgress(total, total);
+    void Promise.race([
+      Promise.all([
+        loadHeroVideo().then(bump),
+        warmFrames(frames, WARM_CONCURRENCY, () => cancelled, bump),
+      ]),
+      sleep(MAX_WAIT), // never leave the user on the loader forever
+    ]).then(() => {
+      setProgress(100);
       hide();
-    };
-
-    void loadTasks();
+    });
 
     return () => {
-      if (removeTimer) window.clearTimeout(removeTimer);
+      cancelled = true;
+      window.clearTimeout(hideTimer);
+      window.clearTimeout(removeTimer);
     };
   }, []);
+
 
   if (!isVisible) return null;
 
   return (
-    <div className={`site-preloader ${isLeaving ? 'is-leaving' : ''}`} role="status" aria-label="Loading Hamdard Dental">
+    <div
+      className={`site-preloader ${isLeaving ? "is-leaving" : ""}`}
+      role="status"
+      aria-label="Loading Hamdard Dental"
+    >
       <div className="site-preloader__card" aria-hidden="true">
-        <img src="/logo-blue.png" alt="Hamdard logo" className="site-preloader__logo" />
+        <img
+          src="/logo-blue.png"
+          alt="Hamdard logo"
+          className="site-preloader__logo"
+        />
         {/* <div className="site-preloader__text-wrap">
           <span className="site-preloader__brand">Hamdard</span>
           <small className="site-preloader__sub">Dental &amp; Skin Clinic</small>
@@ -240,7 +209,10 @@ export default function Preloader() {
 
       <div className="site-preloader__progress" aria-live="polite">
         <div className="site-preloader__bar" aria-hidden="true">
-          <span className="site-preloader__bar-fill" style={{ width: `${progress}%` }}>
+          <span
+            className="site-preloader__bar-fill"
+            style={{ width: `${progress}%` }}
+          >
             {/* 3D Spinning molar_tooth model rides at the live tip of the progress bar */}
             <span className="site-preloader__tooth" aria-hidden="true">
               <ToothSpinner />
