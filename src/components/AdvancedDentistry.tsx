@@ -12,6 +12,8 @@ import {
   evictOutside,
   clearFrames,
   warmFrames,
+  framePath, 
+  isMobileViewport 
 } from "./frameStore";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -39,7 +41,12 @@ const SCROLL_KEYS = new Set([
 const sleep = (ms: number) =>
   new Promise<void>((r) => window.setTimeout(r, ms));
 
-export default function AdvancedDentistry() {
+const IS_MOBILE = isMobileViewport();
+
+const MOBILE_FOCAL = { x: 0.5, y: 0.5 }; // object-position for the static image
+const visibleNow = { opacity: 1, visibility: 'visible' } as const;
+
+function AnimatedDentistry() {
   const sectionRef = useRef<HTMLElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -377,4 +384,68 @@ export default function AdvancedDentistry() {
       </div>
     </section>
   );
+}
+
+function StaticDentistry() {
+  useEffect(() => {
+    const finish = () => {
+      window.__introFinished = true;
+      window.dispatchEvent(new CustomEvent('intro:finished')); // navbar listens to this
+    };
+    if (window.__preloaderReady) {
+      finish();
+      return;
+    }
+    window.addEventListener('preloader:ready', finish, { once: true });
+    return () => window.removeEventListener('preloader:ready', finish);
+  }, []);
+
+  return (
+    <section className="advanced-dentistry" aria-labelledby="advanced-dentistry-title">
+      <div
+        className="advanced-dentistry__stage"
+        style={{ position: 'relative', height: '100svh', overflow: 'hidden' }}
+      >
+        <img
+          src={framePath(TOTAL_FRAMES - 1)}
+          alt=""
+          aria-hidden="true"
+          fetchPriority="high"
+          decoding="async"
+          className="advanced-dentistry__canvas"
+          style={{
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            objectPosition: `${MOBILE_FOCAL.x * 100}% ${MOBILE_FOCAL.y * 100}%`,
+          }}
+        />
+        <div className="advanced-dentistry__copy">
+          <p id="advanced-dentistry-title" className="feature-title" style={visibleNow}>
+            Restore Your True Smile
+          </p>
+          <p className="feature-copy" style={visibleNow}>
+            Using advanced technology, we deliver comprehensive treatments for a healthy, confident smile.
+          </p>
+          <p className="feature-tags" style={visibleNow}>
+            <span className="feature-tag">Smile Design</span>
+            <span className="feature-tag">Dental Implants</span>
+            <span className="feature-tag">Teeth Whitening</span>
+          </p>
+          <div className="feature-proof" aria-label="More than 2k patients" style={visibleNow}>
+            <div className="feature-proof__avatars" aria-hidden="true">
+              <span className="feature-avatar avatar-one"></span>
+              <span className="feature-avatar avatar-two"></span>
+              <span className="feature-avatar avatar-three"></span>
+            </div>
+            <span className="feature-proof__count">+2k</span>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+export default function AdvancedDentistry() {
+  return IS_MOBILE ? <StaticDentistry /> : <AnimatedDentistry />;
 }

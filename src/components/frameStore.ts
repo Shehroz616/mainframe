@@ -9,6 +9,10 @@ const MAX_ATTEMPTS = 2;
 export const framePath = (i: number) =>
   `/frames/ezgif-frame-${String(i + 1).padStart(3, '0')}.webp`;
 
+// Same breakpoint as Tailwind's `md` (768px), so it matches the navbar.
+export const isMobileViewport = () =>
+  typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches;
+
 const cache = new Map<number, HTMLImageElement>();
 const inflight = new Map<number, Promise<HTMLImageElement | null>>();
 const attempts = new Map<number, number>();

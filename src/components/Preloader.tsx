@@ -2,15 +2,20 @@ import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
-import { INTRO_FRAMES, warmFrames } from "./frameStore";
+import {
+  INTRO_FRAMES,
+  warmFrames,
+  TOTAL_FRAMES,
+  framePath,
+  isMobileViewport,
+} from "./frameStore";
 
 const VIDEO_SRC = "/hero-video-2.mp4";
 const VIDEO_TIMEOUT = 6000;
 const MAX_WAIT = 15000;
 const WARM_CONCURRENCY = 8;
 const sleep = (ms: number) =>
-new Promise<void>((r) => window.setTimeout(r, ms));
-
+  new Promise<void>((r) => window.setTimeout(r, ms));
 
 function ToothSpinner() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -135,6 +140,15 @@ function loadHeroVideo() {
     video.load();
   });
 }
+
+function preloadImage(src: string) {
+  return new Promise<void>((resolve) => {
+    const img = new Image();
+    img.onload = () => resolve();
+    img.onerror = () => resolve();
+    img.src = src;
+  });
+}
 export default function Preloader() {
   const [isVisible, setIsVisible] = useState(true);
   const [isLeaving, setIsLeaving] = useState(false);
@@ -146,7 +160,8 @@ export default function Preloader() {
     let hideTimer: number | undefined;
     let removeTimer: number | undefined;
     const startedAt = performance.now();
-    const total = INTRO_FRAMES + 1;
+    const mobile = isMobileViewport();
+    const total = mobile ? 1 : INTRO_FRAMES + 1;
     let loaded = 0;
 
     const bump = () => {
@@ -168,13 +183,14 @@ export default function Preloader() {
 
     const frames = Array.from({ length: INTRO_FRAMES }, (_, i) => i);
 
-    void Promise.race([
-      Promise.all([
-        loadHeroVideo().then(bump),
-        warmFrames(frames, WARM_CONCURRENCY, () => cancelled, bump),
-      ]),
-      sleep(MAX_WAIT), // never leave the user on the loader forever
-    ]).then(() => {
+    const work = mobile
+      ? preloadImage(framePath(TOTAL_FRAMES - 1)).then(bump)
+      : Promise.all([
+          loadHeroVideo().then(bump),
+          warmFrames(frames, WARM_CONCURRENCY, () => cancelled, bump),
+        ]);
+
+    void Promise.race([work, sleep(MAX_WAIT)]).then(() => {
       setProgress(100);
       hide();
     });
@@ -185,7 +201,6 @@ export default function Preloader() {
       window.clearTimeout(removeTimer);
     };
   }, []);
-
 
   if (!isVisible) return null;
 
