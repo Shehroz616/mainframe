@@ -1,7 +1,7 @@
 declare const __TOTAL_FRAMES__: number;
 
 export const TOTAL_FRAMES = __TOTAL_FRAMES__;
-export const INTRO_FRAMES = Math.min(120, TOTAL_FRAMES);
+export const INTRO_FRAMES = Math.min(220, TOTAL_FRAMES);
 
 const MAX_CONCURRENT = 6;
 const MAX_ATTEMPTS = 2;

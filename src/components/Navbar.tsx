@@ -10,6 +10,20 @@ const NAV_LINKS = [
 export function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  // Hidden until the intro frames finish playing.
+  const [isVisible, setIsVisible] = useState(
+    () => typeof window !== 'undefined' && window.__introFinished === true,
+  );
+
+  useEffect(() => {
+    if (window.__introFinished) {
+      setIsVisible(true);
+      return;
+    }
+    const show = () => setIsVisible(true);
+    window.addEventListener('intro:finished', show, { once: true });
+    return () => window.removeEventListener('intro:finished', show);
+  }, []);
 
   useEffect(() => {
     const updateScrollState = () => setIsScrolled(window.scrollY > 24);
@@ -22,15 +36,18 @@ export function Navbar() {
 
   return (
     <>
-      <header
-        className={`fixed inset-x-0 top-3 z-50 flex justify-center px-3 transition-all duration-500 ${
-          isScrolled ? 'translate-y-0 opacity-100' : 'translate-y-0 opacity-100'
+       <header
+        aria-hidden={!isVisible}
+        className={`fixed inset-x-0 top-3 z-50 flex justify-center px-3 ${
+          isVisible ? 'pointer-events-none' : 'pointer-events-none invisible'
         }`}
       >
         <div
-          className={`flex w-[min(92vw,1200px)] items-center justify-between rounded-full border border-black/5 bg-white/75 px-4 py-2 shadow-[0_10px_30px_rgba(0,0,0,0.10)] backdrop-blur-xl transition-all duration-500 md:px-6 ${
-            isScrolled ? 'shadow-[0_18px_45px_rgba(11,26,36,0.16)]' : ''
-          }`}
+          className={`flex w-[min(92vw,1200px)] origin-top items-center justify-between rounded-full border border-black/5 bg-white/75 px-4 py-2 shadow-[0_10px_30px_rgba(0,0,0,0.10)] backdrop-blur-xl transition-[transform,opacity,box-shadow] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none md:px-6 ${
+            isVisible
+              ? 'pointer-events-auto scale-100 opacity-100'
+              : 'scale-125 opacity-0'
+          } ${isScrolled ? 'shadow-[0_18px_45px_rgba(11,26,36,0.16)]' : ''}`}
         >
           <a href="#top" aria-label="Hamdard home" className="flex items-center gap-3">
             <img src="logo-blue.png" alt="Hamdard logo" className="h-12 w-auto md:h-14" />

@@ -2,4 +2,5 @@
 
 interface Window {
   __preloaderReady?: boolean;
+  __introFinished?: boolean;
 }

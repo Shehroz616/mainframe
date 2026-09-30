@@ -1,10 +1,18 @@
-import { useEffect, useRef } from 'react';
-import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { useEffect, useRef } from "react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import {
-  TOTAL_FRAMES, INTRO_FRAMES, getFrame, hasFrame, isFailed,
-  loadFrame, requestFrames, evictOutside, clearFrames, warmFrames,
-} from './frameStore';
+  TOTAL_FRAMES,
+  INTRO_FRAMES,
+  getFrame,
+  hasFrame,
+  isFailed,
+  loadFrame,
+  requestFrames,
+  evictOutside,
+  clearFrames,
+  warmFrames,
+} from "./frameStore";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -12,11 +20,24 @@ const LAST_INTRO = INTRO_FRAMES - 1;
 const INTRO_FPS = 60;
 const INTRO_PREBUFFER = 40;
 const INTRO_STALL_LIMIT = 4000;
-const AHEAD = 48;   // decoded frames kept in scroll direction
-const BEHIND = 12;  // decoded frames kept behind
+const AHEAD = 48; // decoded frames kept in scroll direction
+const BEHIND = 12; // decoded frames kept behind
+// Like CSS object-position: 0 = left/top, 0.5 = center, 1 = right/bottom.
+const FOCAL_DESKTOP = { x: 0.5, y: 0.5 };
+const FOCAL_MOBILE = { x: 0.75, y: 0.5 }; // change x/y if the subject sits off-center
 
-const SCROLL_KEYS = new Set([' ', 'Spacebar', 'ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End']);
-const sleep = (ms: number) => new Promise<void>((r) => window.setTimeout(r, ms));
+const SCROLL_KEYS = new Set([
+  " ",
+  "Spacebar",
+  "ArrowUp",
+  "ArrowDown",
+  "PageUp",
+  "PageDown",
+  "Home",
+  "End",
+]);
+const sleep = (ms: number) =>
+  new Promise<void>((r) => window.setTimeout(r, ms));
 
 export default function AdvancedDentistry() {
   const sectionRef = useRef<HTMLElement>(null);
@@ -29,7 +50,7 @@ export default function AdvancedDentistry() {
     const track = trackRef.current;
     const canvas = canvasRef.current;
     if (!section || !track || !canvas) return;
-    const context = canvas.getContext('2d', { alpha: false });
+    const context = canvas.getContext("2d", { alpha: false });
     if (!context) return;
 
     let destroyed = false;
@@ -47,8 +68,8 @@ export default function AdvancedDentistry() {
     const prevRoot = root.style.overflow;
     const prevBody = document.body.style.overflow;
     const lockScroll = () => {
-      root.style.overflow = 'hidden';
-      document.body.style.overflow = 'hidden';
+      root.style.overflow = "hidden";
+      document.body.style.overflow = "hidden";
     };
     const unlockScroll = () => {
       root.style.overflow = prevRoot;
@@ -56,16 +77,24 @@ export default function AdvancedDentistry() {
     };
 
     // ─── Drawing ───
+    const mobileQuery = window.matchMedia("(max-width: 767px)");
+
     const drawFrame = (index: number) => {
       const image = getFrame(index);
       if (!image || destroyed) return;
+
       const w = window.innerWidth;
       const h = window.innerHeight;
       const scale = Math.max(w / image.naturalWidth, h / image.naturalHeight);
       const dw = image.naturalWidth * scale;
       const dh = image.naturalHeight * scale;
+
+      const focal = mobileQuery.matches ? FOCAL_MOBILE : FOCAL_DESKTOP;
+      const x = (w - dw) * focal.x;
+      const y = (h - dh) * focal.y;
+
       context.clearRect(0, 0, w, h);
-      context.drawImage(image, (w - dw) / 2, (h - dh) / 2, dw, dh);
+      context.drawImage(image, x, y, dw, dh);
     };
 
     const resizeCanvas = () => {
@@ -77,7 +106,7 @@ export default function AdvancedDentistry() {
       // Setting canvas.width resets context state, so re-apply everything here.
       context.setTransform(dpr, 0, 0, dpr, 0, 0);
       context.imageSmoothingEnabled = true;
-      context.imageSmoothingQuality = 'high';
+      context.imageSmoothingQuality = "high";
       drawFrame(currentFrameRef.current);
     };
 
@@ -114,7 +143,8 @@ export default function AdvancedDentistry() {
     const loop = () => {
       if (destroyed) return;
       displayFrame += (targetFrame - displayFrame) * 0.35;
-      if (Math.abs(targetFrame - displayFrame) < 0.05) displayFrame = targetFrame;
+      if (Math.abs(targetFrame - displayFrame) < 0.05)
+        displayFrame = targetFrame;
 
       const ideal = Math.round(displayFrame);
       const best = nearestCached(ideal);
@@ -148,11 +178,18 @@ export default function AdvancedDentistry() {
       dir = 1;
       unlockScroll();
       ScrollTrigger.refresh();
+      // Tell the rest of the site the intro is over (navbar listens to this).
+      window.__introFinished = true;
+      window.dispatchEvent(new CustomEvent("intro:finished"));
+
       planWindow(LAST_INTRO);
       kick();
 
       // Warm HTTP cache (bytes only) for the rest, low priority, 2 at a time.
-      const rest = Array.from({ length: TOTAL_FRAMES - INTRO_FRAMES }, (_, i) => INTRO_FRAMES + i);
+      const rest = Array.from(
+        { length: TOTAL_FRAMES - INTRO_FRAMES },
+        (_, i) => INTRO_FRAMES + i,
+      );
       void warmFrames(rest, 2, () => destroyed);
     };
 
@@ -163,7 +200,10 @@ export default function AdvancedDentistry() {
 
       const order = Array.from({ length: INTRO_FRAMES }, (_, i) => i);
       const prebuffer = Math.min(INTRO_PREBUFFER, INTRO_FRAMES);
-      await Promise.race([Promise.all(order.slice(0, prebuffer).map(loadFrame)), sleep(5000)]);
+      await Promise.race([
+        Promise.all(order.slice(0, prebuffer).map(loadFrame)),
+        sleep(5000),
+      ]);
       if (destroyed || !isIntroPlaying) return;
       requestFrames(order.slice(prebuffer));
 
@@ -207,14 +247,16 @@ export default function AdvancedDentistry() {
     };
 
     // ─── ScrollTrigger ───
-    const textLayers = Array.from(section.querySelectorAll<HTMLElement>('[data-copy]'));
+    const textLayers = Array.from(
+      section.querySelectorAll<HTMLElement>("[data-copy]"),
+    );
     const layerVisible = new Map<HTMLElement, boolean>();
 
     const scrollTrigger = ScrollTrigger.create({
       trigger: track,
-      start: 'top top',
-      end: 'bottom bottom',
-      pin: '[data-pinned-stage]',
+      start: "top top",
+      end: "bottom bottom",
+      pin: "[data-pinned-stage]",
       pinSpacing: false, // track already provides the scroll distance
       onUpdate: (self) => {
         if (isIntroPlaying) return;
@@ -228,7 +270,12 @@ export default function AdvancedDentistry() {
           const visible = progress >= from && progress <= to;
           if (layerVisible.get(layer) === visible) return;
           layerVisible.set(layer, visible);
-          gsap.to(layer, { autoAlpha: visible ? 1 : 0, duration: 0.6, ease: 'power2.out', overwrite: true });
+          gsap.to(layer, {
+            autoAlpha: visible ? 1 : 0,
+            duration: 0.6,
+            ease: "power2.out",
+            overwrite: true,
+          });
         });
 
         targetFrame = LAST_INTRO + progress * (TOTAL_FRAMES - 1 - LAST_INTRO);
@@ -243,29 +290,36 @@ export default function AdvancedDentistry() {
       void runIntro();
     } else {
       preloaderListener = () => void runIntro();
-      window.addEventListener('preloader:ready', preloaderListener, { once: true });
+      window.addEventListener("preloader:ready", preloaderListener, {
+        once: true,
+      });
     }
 
-    const blockWheel = (e: WheelEvent) => { if (isIntroPlaying) e.preventDefault(); };
-    const blockTouch = (e: TouchEvent) => { if (isIntroPlaying) e.preventDefault(); };
+    const blockWheel = (e: WheelEvent) => {
+      if (isIntroPlaying) e.preventDefault();
+    };
+    const blockTouch = (e: TouchEvent) => {
+      if (isIntroPlaying) e.preventDefault();
+    };
     const blockKeys = (e: KeyboardEvent) => {
       if (isIntroPlaying && SCROLL_KEYS.has(e.key)) e.preventDefault();
     };
 
-    window.addEventListener('resize', resizeCanvas);
-    window.addEventListener('wheel', blockWheel, { passive: false });
-    window.addEventListener('touchmove', blockTouch, { passive: false });
-    window.addEventListener('keydown', blockKeys);
+    window.addEventListener("resize", resizeCanvas);
+    window.addEventListener("wheel", blockWheel, { passive: false });
+    window.addEventListener("touchmove", blockTouch, { passive: false });
+    window.addEventListener("keydown", blockKeys);
 
     return () => {
       destroyed = true;
-      if (preloaderListener) window.removeEventListener('preloader:ready', preloaderListener);
+      if (preloaderListener)
+        window.removeEventListener("preloader:ready", preloaderListener);
       window.cancelAnimationFrame(introRaf);
       window.cancelAnimationFrame(loopRaf);
-      window.removeEventListener('resize', resizeCanvas);
-      window.removeEventListener('wheel', blockWheel);
-      window.removeEventListener('touchmove', blockTouch);
-      window.removeEventListener('keydown', blockKeys);
+      window.removeEventListener("resize", resizeCanvas);
+      window.removeEventListener("wheel", blockWheel);
+      window.removeEventListener("touchmove", blockTouch);
+      window.removeEventListener("keydown", blockKeys);
       unlockScroll();
       scrollTrigger.kill();
       clearFrames();
@@ -273,29 +327,51 @@ export default function AdvancedDentistry() {
   }, []);
 
   return (
-    <section ref={sectionRef} className="advanced-dentistry" aria-labelledby="advanced-dentistry-title">
+    <section
+      ref={sectionRef}
+      className="advanced-dentistry"
+      aria-labelledby="advanced-dentistry-title"
+    >
       <div ref={trackRef} className="advanced-dentistry__track">
         <div data-pinned-stage className="advanced-dentistry__stage">
-          <canvas ref={canvasRef} className="advanced-dentistry__canvas" aria-hidden="true" />
+          <canvas
+            ref={canvasRef}
+            className="advanced-dentistry__canvas"
+            aria-hidden="true"
+          />
           <div className="advanced-dentistry__copy">
-            <p id="advanced-dentistry-title" data-copy data-from="0.95" data-to="1" className="feature-title">
+            <p
+              id="advanced-dentistry-title"
+              data-copy
+              data-from="0.95"
+              data-to="1"
+              className="feature-title"
+            >
               Restore Your True Smile
             </p>
             <p data-copy data-from="0.95" data-to="1" className="feature-copy">
-              Using advanced technology, we deliver comprehensive treatments for a healthy, confident smile.
+              Using advanced technology, we deliver comprehensive treatments for
+              a healthy, confident smile.
             </p>
             <p data-copy data-from="0.95" data-to="1" className="feature-tags">
               <span className="feature-tag">Smile Design</span>
               <span className="feature-tag">Dental Implants</span>
               <span className="feature-tag">Teeth Whitening</span>
             </p>
-            <div data-copy data-from="0.95" data-to="1" className="feature-proof" aria-label="More than 2k patients">
+            <div
+              data-copy
+              data-from="0.95"
+              data-to="1"
+              className="feature-proof"
+              aria-label="More than 2k patients"
+            >
               <div className="feature-proof__avatars" aria-hidden="true">
-                <span className="feature-avatar avatar-one"></span><span className="feature-avatar avatar-two"></span><span className="feature-avatar avatar-three"></span>
+                <span className="feature-avatar avatar-one"></span>
+                <span className="feature-avatar avatar-two"></span>
+                <span className="feature-avatar avatar-three"></span>
               </div>
               <span className="feature-proof__count">+2k</span>
             </div>
-
           </div>
         </div>
       </div>
