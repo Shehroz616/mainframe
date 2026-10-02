@@ -8,12 +8,14 @@ gsap.registerPlugin(ScrollTrigger);
 
 const ToothScrollSection = () => {
   const sectionRef = useRef<HTMLElement | null>(null);
+  const stageRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   useEffect(() => {
     const section = sectionRef.current;
+    const stage = stageRef.current;
     const canvas = canvasRef.current;
-    if (!section || !canvas) return;
+    if (!section || !stage || !canvas) return;
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(24, 1, 0.1, 100);
@@ -62,12 +64,15 @@ const ToothScrollSection = () => {
     });
 
     const resize = () => {
-      const width = section.clientWidth;
-      const height = window.innerHeight;
+      const width = stage.clientWidth;
+      const height = stage.clientHeight;
       camera.aspect = width / height;
       camera.updateProjectionMatrix();
       renderer.setSize(width, height, false);
     };
+
+    const resizeObserver = new ResizeObserver(resize);
+    resizeObserver.observe(stage);
 
     const scrollTrigger = ScrollTrigger.create({
       trigger: section,
@@ -118,6 +123,7 @@ const ToothScrollSection = () => {
       destroyed = true;
       scrollTrigger.kill();
       gsap.ticker.remove(render);
+      resizeObserver.disconnect();
       window.removeEventListener('resize', resize);
       renderer.dispose();
       scene.traverse((object) => {
@@ -131,20 +137,25 @@ const ToothScrollSection = () => {
 
   return (
     <section ref={sectionRef} className="tooth-scroll-section" aria-labelledby="tooth-scroll-title">
-      <div className="tooth-scroll-stage">
+      <div ref={stageRef} className="tooth-scroll-stage">
         <canvas ref={canvasRef} className="tooth-scroll-canvas" aria-hidden="true" />
         <div className="tooth-scroll-copy" data-tooth-copy>
           <p className="tooth-scroll-kicker">Precision, made visible</p>
           <h2 id="tooth-scroll-title" aria-label="Dental Problems">
-            {Array.from('Dental Problems').map((letter, index) => (
-              <span
-                key={`${letter}-${index}`}
-                data-tooth-letter
-                aria-hidden="true"
-              >
-                {letter === ' ' ? '\u00a0' : letter}
-              </span>
-            ))}
+            <span className="tooth-scroll-word">
+              {Array.from('Dental').map((letter, index) => (
+                <span key={`dental-${index}`} data-tooth-letter aria-hidden="true">
+                  {letter}
+                </span>
+              ))}
+            </span>{' '}
+            <span className="tooth-scroll-word">
+              {Array.from('Problems').map((letter, index) => (
+                <span key={`problems-${index}`} data-tooth-letter aria-hidden="true">
+                  {letter}
+                </span>
+              ))}
+            </span>
           </h2>
           <p className="tooth-scroll-intro">That can occour due to diabetes.</p>
         </div>

@@ -1744,7 +1744,12 @@ img {
   text-wrap: balance;
 }
 
-.tooth-scroll-copy h2 span {
+.tooth-scroll-word {
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.tooth-scroll-copy h2 [data-tooth-letter] {
   display: inline-block;
   will-change: transform, opacity;
 }
@@ -1853,10 +1858,13 @@ img {
 
 @media (max-width: 700px) {
   .tooth-scroll-section {
-    height: 240vh;
+    width: 100%;
+    height: 240svh;
+    aspect-ratio: auto;
   }
 
   .tooth-scroll-stage {
+    height: 100svh;
     min-height: 34rem;
   }
 
@@ -1870,7 +1878,7 @@ img {
   }
 
   .tooth-scroll-copy h2 {
-    max-width: 9ch;
+    max-width: 100%;
     font-size: clamp(3.2rem, 16vw, 6rem);
   }
 
@@ -1901,12 +1909,20 @@ img {
   }
 
   .tooth-scroll-feature {
+    width: min(9.25rem, calc(50vw - 1.5rem));
     gap: 0.45rem;
+    grid-template-columns: minmax(0, 1fr) auto;
+    padding: 0.55rem 0.6rem;
+  }
+
+  .tooth-scroll-feature strong {
+    font-size: clamp(0.75rem, 3vw, 0.95rem);
+    overflow-wrap: anywhere;
   }
 
   .tooth-scroll-feature__icon {
-    width: 2.6rem;
-    height: 2.6rem;
+    width: 2.3rem;
+    height: 2.3rem;
     border-radius: 0.65rem;
   }
 }
