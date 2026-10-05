@@ -148,7 +148,7 @@ const ToothScrollSection = () => {
                   {letter}
                 </span>
               ))}
-            </span>{' '}
+            </span>
             <span className="tooth-scroll-word">
               {Array.from('Problems').map((letter, index) => (
                 <span key={`problems-${index}`} data-tooth-letter aria-hidden="true">
