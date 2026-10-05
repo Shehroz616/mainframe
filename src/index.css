@@ -1725,7 +1725,7 @@ img {
   left: 50%;
   width: min(72rem, calc(100% - 3rem));
   transform: translateX(-50%);
-  opacity: 0;
+  opacity: 1;
   text-align: center;
 }
 
