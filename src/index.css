@@ -442,6 +442,10 @@ img {
 .testimonials-section {
   position: relative;
   width: 100%;
+  min-height: 100vh;
+  min-height: 100svh;
+  display: flex;
+  align-items: center;
   background: #ffffff;
   padding: 5rem 0 5.5rem;
 }
