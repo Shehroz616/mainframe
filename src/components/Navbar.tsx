@@ -7,6 +7,29 @@ const NAV_LINKS = [
   { label: 'Contact', href: '#contact' },
 ];
 
+const SOCIAL_LINKS = [
+  {
+    label: 'Instagram',
+    href: 'https://www.instagram.com/hamdardclinic/',
+    icon: (
+      <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4 fill-none stroke-current">
+        <rect x="3.5" y="3.5" width="17" height="17" rx="5" strokeWidth="1.6" />
+        <circle cx="12" cy="12" r="4.1" strokeWidth="1.6" />
+        <circle cx="17.2" cy="6.8" r="1.1" fill="currentColor" stroke="none" />
+      </svg>
+    ),
+  },
+  {
+    label: 'Facebook',
+    href: 'https://www.facebook.com/hamdardclinic',
+    icon: (
+      <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4 fill-current">
+        <path d="M13.5 21v-8h2.7l.4-3.2h-3.1V7.3c0-.9.3-1.6 1.7-1.6h1.8V2.7c-.3 0-1.4-.1-2.7-.1-2.7 0-4.5 1.6-4.5 4.7v2.6H7v3.2h3.1v8h3.4Z" />
+      </svg>
+    ),
+  },
+];
+
 export function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
@@ -116,19 +139,38 @@ export function Navbar() {
           <a
             key={link.label}
             href={link.href}
-            className="text-[1.8rem] font-medium tracking-[0.06em] text-slate-900 uppercase"
+            className="text-[1.5rem] font-medium tracking-[0.06em] text-slate-900 uppercase"
             onClick={() => setMenuOpen(false)}
           >
             {link.label}
           </a>
         ))}
+
         <a
           href="#contact"
-          className="rounded-full bg-[#2ca8ff] px-6 py-3 text-[1.05rem] font-semibold tracking-[0.12em] text-white uppercase shadow-[0_12px_24px_rgba(44,168,255,0.32)]"
+          className="rounded-full bg-[#2ca8ff] px-5 py-2 text-[1.05rem] font-semibold tracking-[0.12em] text-white uppercase shadow-[0_12px_24px_rgba(44,168,255,0.32)]"
           onClick={() => setMenuOpen(false)}
         >
           Get in touch
         </a>
+
+        <div className="flex items-center gap-3">
+          {SOCIAL_LINKS.map((link) => (
+            <a
+              key={link.label}
+              href={link.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={link.label}
+              className="flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-[0_8px_18px_rgba(15,23,42,0.08)] transition-colors duration-300 hover:border-sky-200 hover:text-sky-600"
+              onClick={() => setMenuOpen(false)}
+            >
+              {link.icon}
+            </a>
+          ))}
+        </div>
+
+        
       </div>
     </>
   );

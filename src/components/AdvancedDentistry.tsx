@@ -365,7 +365,7 @@ function AnimatedDentistry() {
               <span className="feature-tag">Dental Implants</span>
               <span className="feature-tag">Teeth Whitening</span>
             </p>
-            <div
+            {/* <div
               data-copy
               data-from="0.95"
               data-to="1"
@@ -378,7 +378,7 @@ function AnimatedDentistry() {
                 <span className="feature-avatar avatar-three"></span>
               </div>
               <span className="feature-proof__count">+2k</span>
-            </div>
+            </div> */}
           </div>
         </div>
       </div>
@@ -420,6 +420,7 @@ function StaticDentistry() {
             objectPosition: `${MOBILE_FOCAL.x * 100}% ${MOBILE_FOCAL.y * 100}%`,
           }}
         />
+        <div className="advanced-dentistry__mobile-overlay" aria-hidden="true" />
         <div className="advanced-dentistry__copy">
           <p id="advanced-dentistry-title" className="feature-title" style={visibleNow}>
             Restore Your True Smile
@@ -432,14 +433,14 @@ function StaticDentistry() {
             <span className="feature-tag">Dental Implants</span>
             <span className="feature-tag">Teeth Whitening</span>
           </p>
-          <div className="feature-proof" aria-label="More than 2k patients" style={visibleNow}>
+          {/* <div className="feature-proof" aria-label="More than 2k patients" style={visibleNow}>
             <div className="feature-proof__avatars" aria-hidden="true">
               <span className="feature-avatar avatar-one"></span>
               <span className="feature-avatar avatar-two"></span>
               <span className="feature-avatar avatar-three"></span>
             </div>
             <span className="feature-proof__count">+2k</span>
-          </div>
+          </div> */}
         </div>
       </div>
     </section>

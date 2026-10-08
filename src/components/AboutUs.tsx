@@ -28,7 +28,7 @@ const AboutUs: React.FC = () => {
   const [activeTab, setActiveTab] = useState(0);
 
   return (
-    <section id="about" className="relative z-10 overflow-hidden bg-white py-28 text-slate-900 lg:py-36">
+    <section id="about" className="relative z-10 overflow-hidden bg-white py-24 text-slate-900 lg:py-36">
       
 
       {/* SVG Tooth ClipPath Definition */}
@@ -131,7 +131,7 @@ const AboutUs: React.FC = () => {
             </div>
 
             {/* Action CTAs (Island Button Architecture with Trailing Icon Wrapper) */}
-            <div className="mt-10 flex flex-wrap items-center gap-4">
+            <div className="mt-10 flex flex-wrap items-center gap-4 justify-center lg:justify-start">
               <a
                 href="#contact"
                 className="group inline-flex items-center gap-3 rounded-full bg-gradient-to-r from-[#2ca8ff] to-[#1a8ad4] pl-7 pr-3 py-3 text-xs font-bold tracking-widest text-white uppercase shadow-[0_10px_25px_rgba(44,168,255,0.32)] transition-all duration-300 hover:scale-[1.02] hover:shadow-[0_15px_35px_rgba(44,168,255,0.45)] active:scale-[0.98]"
